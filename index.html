@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health & Wellbeing Platform</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Health & Wellbeing Platform</h1>
+    <nav>
+      <ul>
+        <li><a href="diet.html">Diet Planner</a></li>
+        <li><a href="reminder.html">Medication Reminder</a></li>
+        <li><a href="http://localhost:8501/">AI Chatbot</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h2>Take charge of your health with AI-powered support</h2>
+    <p>Personalized diet plans, smart medication reminders, and an interactive chatbot – all in one place.</p>
+    <button onclick="scrollToFeatures()">Explore Features</button>
+  </section>
+
+  <section class="features" id="features">
+    <div class="feature-card" onclick="openModal('diet')">
+      <h3>🍏 Diet Planner</h3>
+      <p>Get personalized meal plans tailored to your health data and preferences.</p>
+    </div>
+
+    <div class="feature-card" onclick="openModal('reminder')">
+      <h3>💊 Medication Reminder</h3>
+      <p>Track your medicines and get timely reminders to never miss a dose.</p>
+    </div>
+
+    <div class="feature-card" onclick="openModal('chatbot')">
+      <h3>🤖 AI Chatbot</h3>
+      <p>Ask questions and get accurate, AI-powered health guidance instantly.</p>
+    </div>
+  </section>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modal-title"></h2>
+      <p id="modal-text"></p>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 Health & Wellbeing Platform | All Rights Reserved</p>
+  </footer>
+
+  <script>
+    function scrollToFeatures() {
+      document.getElementById("features").scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Modal handling
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modal-title");
+    const modalText = document.getElementById("modal-text");
+
+    function openModal(feature) {
+      const info = {
+        diet: {
+          title: "🍏 Diet Planner",
+          text: "Our Diet Planner helps you create personalized meal plans based on your preferences, fitness goals, and health data. You’ll receive balanced nutrition suggestions and can track your daily intake easily."
+        },
+        reminder: {
+          title: "💊 Medication Reminder",
+          text: "Never miss a dose again! Our Medication Reminder sends smart notifications to your phone or email, helping you stay on track with your prescribed medications."
+        },
+        chatbot: {
+          title: "🤖 AI Chatbot",
+          text: "The AI Chatbot provides instant health insights, fitness advice, and answers to your questions 24/7 — making it your personal digital health assistant."
+        }
+      };
+
+      modalTitle.innerText = info[feature].title;
+      modalText.innerText = info[feature].text;
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    };
+  </script>
+</body>
+</html>

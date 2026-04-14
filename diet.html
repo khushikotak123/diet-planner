@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diet Planner</title>
+  <link rel="stylesheet" href="diet.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Diet Planner</h1>
+    <form id="dietForm">
+      <label>Age: <input type="number" name="age" required></label>
+      <label>Gender:
+        <select name="gender" required>
+          <option value="">Select</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </label>
+      <label>Height (cm): <input type="number" name="height" required></label>
+      <label>Weight (kg): <input type="number" name="weight" required></label>
+      <label>Goal:
+        <select name="goal" required>
+          <option value="">Select</option>
+          <option value="Weight Loss">Weight Loss</option>
+          <option value="Muscle Gain">Muscle Gain</option>
+          <option value="Maintenance">Maintenance</option>
+        </select>
+      </label>
+      <label>Diet Type:
+        <select name="dietType" required>
+          <option value="">Select</option>
+          <option value="Vegetarian">Vegetarian</option>
+          <option value="Vegan">Vegan</option>
+          <option value="Pescatarian">Pescatarian</option>
+          <option value="Omnivore">Omnivore</option>
+        </select>
+      </label>
+      <label>Allergies: <input type="text" name="allergies" placeholder="Optional"></label>
+      <button type="submit">Get Diet Plan</button>
+    </form>
+
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('dietForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resultDiv.innerHTML = "<p>Fetching diet plan...</p>";
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch('http://localhost:5000/diet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const json = await response.json();
+
+        if (json.error) {
+          resultDiv.innerHTML = `<p class="error">Error: ${json.error}</p>`;
+          return;
+        }
+
+        const plan = json.plan;
+
+        let html = `<h2>Total Calories: ${plan.totalCalories}</h2>`;
+        html += `<p>${plan.notes}</p>`;
+        plan.meals.forEach(meal => {
+          html += `<h3>${meal.meal} (${meal.calories} kcal)</h3><ul>`;
+          meal.items.forEach(item => html += `<li>${item}</li>`);
+          html += `</ul>`;
+        });
+
+        if (plan.snacks?.length > 0) {
+          html += `<h3>Snacks</h3>`;
+          plan.snacks.forEach(snack => {
+            html += `<ul>`;
+            snack.items.forEach(item => html += `<li>${item} (${snack.calories} kcal)</li>`);
+            html += `</ul>`;
+          });
+        }
+
+        resultDiv.innerHTML = html;
+      } catch (err) {
+        resultDiv.innerHTML = `<p class="error">Error fetching diet plan.</p>`;
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
