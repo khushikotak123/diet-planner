@@ -101,7 +101,13 @@ The structure must be:
 });
 
 /* --- Twilio SMS Configuration --- */
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const client = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  : null;
+
+if (!client) {
+  console.warn("Twilio credentials not found — SMS endpoint will be unavailable.");
+}
 
 /**
  * POST /send-sms
@@ -109,6 +115,10 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
  */
 app.post("/send-sms", async (req, res) => {
   try {
+    if (!client) {
+      return res.status(503).json({ error: "Twilio is not configured. Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN in .env" });
+    }
+
     const { phoneNumber, message } = req.body;
     if (!phoneNumber || !message) {
       return res.status(400).json({ error: "Missing phoneNumber or message" });
