@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Health+</title>
+  <link rel="stylesheet" href="css/common.css">
+</head>
+<body>
+  <div class="top-nav" id="top-nav"></div>
+
+  <div class="page-container fade-in">
+    <div class="page-header">
+      <h1>My Profile</h1>
+      <p>Set your personal details for accurate calorie and nutrition calculations.</p>
+    </div>
+
+    <div class="grid-2">
+      <!-- Profile Form -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Personal Information</h2>
+        </div>
+        <form id="profileForm">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" class="form-control" placeholder="Your name">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="age">Age</label>
+              <input type="number" id="age" class="form-control" placeholder="e.g. 25" min="10" max="120" required>
+            </div>
+            <div class="form-group">
+              <label for="gender">Gender</label>
+              <select id="gender" class="form-control" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="height">Height (cm)</label>
+              <input type="number" id="height" class="form-control" placeholder="e.g. 170" min="100" max="250" required>
+            </div>
+            <div class="form-group">
+              <label for="weight">Weight (kg)</label>
+              <input type="number" id="weight" class="form-control" placeholder="e.g. 70" min="30" max="300" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="activityLevel">Activity Level</label>
+            <select id="activityLevel" class="form-control" required>
+              <option value="sedentary">Sedentary (desk job, little exercise)</option>
+              <option value="light">Lightly Active (1-3 days/week)</option>
+              <option value="moderate" selected>Moderately Active (3-5 days/week)</option>
+              <option value="active">Very Active (6-7 days/week)</option>
+              <option value="veryActive">Extra Active (physical job + exercise)</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="goal">Fitness Goal</label>
+              <select id="goal" class="form-control" required>
+                <option value="Weight Loss">Weight Loss</option>
+                <option value="Muscle Gain">Muscle Gain</option>
+                <option value="Maintenance" selected>Maintenance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dietType">Diet Type</label>
+              <select id="dietType" class="form-control" required>
+                <option value="Omnivore" selected>Omnivore</option>
+                <option value="Vegetarian">Vegetarian</option>
+                <option value="Vegan">Vegan</option>
+                <option value="Pescatarian">Pescatarian</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="allergies">Food Allergies (optional)</label>
+            <input type="text" id="allergies" class="form-control" placeholder="e.g. nuts, dairy, gluten">
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block">Save Profile</button>
+        </form>
+      </div>
+
+      <!-- Calorie Summary Panel -->
+      <div>
+        <div class="card" id="calorieSummary" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h2>Your Calorie Targets</h2>
+          </div>
+          <div id="calorieDetails">
+            <div class="empty-state">
+              <div class="empty-icon">&#128202;</div>
+              <p>Fill in your profile to see personalized calorie targets.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>About the Calculation</h2>
+          </div>
+          <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+            <p><strong>BMR</strong> (Basal Metabolic Rate) is calculated using the Mifflin-St Jeor equation &mdash; the most accurate formula for estimating your resting energy expenditure.</p>
+            <br>
+            <p><strong>TDEE</strong> (Total Daily Energy Expenditure) multiplies your BMR by an activity factor to estimate how many calories you burn per day.</p>
+            <br>
+            <p><strong>Goal Adjustment:</strong></p>
+            <ul style="margin-left: 20px; margin-top: 4px;">
+              <li>Weight Loss: TDEE - 500 kcal</li>
+              <li>Muscle Gain: TDEE + 300 kcal</li>
+              <li>Maintenance: TDEE (no change)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    &copy; 2025 Health+ Platform | All Rights Reserved
+  </footer>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calories.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    UI.renderNav('profile');
+
+    const form = document.getElementById('profileForm');
+    const fields = ['name', 'age', 'gender', 'height', 'weight', 'activityLevel', 'goal', 'dietType', 'allergies'];
+
+    /* Load saved profile data into form */
+    function loadProfile() {
+      const profile = Storage.getProfile();
+      fields.forEach(f => {
+        const el = document.getElementById(f);
+        if (el && profile[f]) el.value = profile[f];
+      });
+      updateCalorieSummary();
+    }
+
+    /* Calculate and display calorie targets */
+    function updateCalorieSummary() {
+      const profile = Storage.getProfile();
+      const details = document.getElementById('calorieDetails');
+
+      if (!profile.age || !profile.gender || !profile.height || !profile.weight) {
+        return;
+      }
+
+      const calc = CalorieCalculator.calculate(profile);
+
+      details.innerHTML = `
+        <div class="stats-grid" style="margin-bottom: 16px;">
+          <div class="stat-card">
+            <div class="stat-icon green">&#128293;</div>
+            <div class="stat-label">BMR</div>
+            <div class="stat-value">${calc.bmr} <span class="stat-unit">kcal</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">&#9889;</div>
+            <div class="stat-label">TDEE</div>
+            <div class="stat-value">${calc.tdee} <span class="stat-unit">kcal</span></div>
+          </div>
+        </div>
+        <div class="stat-card" style="text-align: center; margin-bottom: 16px;">
+          <div class="stat-label">Daily Calorie Target</div>
+          <div class="stat-value" style="font-size: 36px; color: var(--primary);">${calc.targetCalories} <span class="stat-unit">kcal</span></div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">for ${profile.goal}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; text-align: center;">
+          <div style="padding: 12px; background: var(--surface-alt); border-radius: var(--radius-md);">
+            <div style="font-size: 13px; color: var(--text-muted);">Protein</div>
+            <div style="font-size: 20px; font-weight: 700;">${calc.macros.protein}g</div>
+          </div>
+          <div style="padding: 12px; background: var(--surface-alt); border-radius: var(--radius-md);">
+            <div style="font-size: 13px; color: var(--text-muted);">Carbs</div>
+            <div style="font-size: 20px; font-weight: 700;">${calc.macros.carbs}g</div>
+          </div>
+          <div style="padding: 12px; background: var(--surface-alt); border-radius: var(--radius-md);">
+            <div style="font-size: 13px; color: var(--text-muted);">Fat</div>
+            <div style="font-size: 20px; font-weight: 700;">${calc.macros.fat}g</div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* Save profile on form submit */
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const profile = {};
+      fields.forEach(f => {
+        const el = document.getElementById(f);
+        profile[f] = el ? el.value : '';
+      });
+      Storage.saveProfile(profile);
+      updateCalorieSummary();
+      UI.showToast('Profile saved successfully!');
+    });
+
+    /* Live preview: recalculate on input change */
+    ['age', 'gender', 'height', 'weight', 'activityLevel', 'goal'].forEach(f => {
+      document.getElementById(f).addEventListener('change', () => {
+        const profile = {};
+        fields.forEach(f => {
+          const el = document.getElementById(f);
+          profile[f] = el ? el.value : '';
+        });
+        /* Temporarily save for preview, but don't toast */
+        Storage.saveProfile(profile);
+        updateCalorieSummary();
+      });
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>

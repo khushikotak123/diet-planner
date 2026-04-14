@@ -3,95 +3,330 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diet Planner</title>
-  <link rel="stylesheet" href="diet.css">
+  <title>Diet Planner - Health+</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    /* Diet Plan Result Styles */
+    .meal-card {
+      background: var(--surface-alt);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 16px;
+      border-left: 4px solid var(--primary);
+    }
+
+    .meal-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    .meal-card .meal-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .meal-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .meal-card li {
+      padding: 6px 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meal-card li:last-child {
+      border-bottom: none;
+    }
+
+    .plan-summary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .plan-summary .total-cal {
+      font-size: 42px;
+      font-weight: 700;
+    }
+
+    .plan-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .loading-spinner {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading-spinner .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Diet Planner</h1>
-    <form id="dietForm">
-      <label>Age: <input type="number" name="age" required></label>
-      <label>Gender:
-        <select name="gender" required>
-          <option value="">Select</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
-      </label>
-      <label>Height (cm): <input type="number" name="height" required></label>
-      <label>Weight (kg): <input type="number" name="weight" required></label>
-      <label>Goal:
-        <select name="goal" required>
-          <option value="">Select</option>
-          <option value="Weight Loss">Weight Loss</option>
-          <option value="Muscle Gain">Muscle Gain</option>
-          <option value="Maintenance">Maintenance</option>
-        </select>
-      </label>
-      <label>Diet Type:
-        <select name="dietType" required>
-          <option value="">Select</option>
-          <option value="Vegetarian">Vegetarian</option>
-          <option value="Vegan">Vegan</option>
-          <option value="Pescatarian">Pescatarian</option>
-          <option value="Omnivore">Omnivore</option>
-        </select>
-      </label>
-      <label>Allergies: <input type="text" name="allergies" placeholder="Optional"></label>
-      <button type="submit">Get Diet Plan</button>
-    </form>
+  <div class="top-nav" id="top-nav"></div>
 
-    <div id="result" class="result"></div>
+  <div class="page-container fade-in">
+    <div class="page-header">
+      <h1>AI Diet Planner</h1>
+      <p>Get a personalized daily meal plan powered by AI, tailored to your body and goals.</p>
+    </div>
+
+    <!-- Calorie Target Banner (if profile exists) -->
+    <div id="targetBanner" class="card" style="display: none; margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div>
+          <div style="font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Your Dynamic Calorie Target</div>
+          <div style="font-size: 28px; font-weight: 700; color: var(--primary);" id="targetDisplay">--</div>
+        </div>
+        <div style="font-size: 13px; color: var(--text-secondary);" id="targetDetails"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Diet Form -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Your Details</h2>
+        </div>
+        <form id="dietForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="age">Age</label>
+              <input type="number" id="age" name="age" class="form-control" placeholder="e.g. 25" required>
+            </div>
+            <div class="form-group">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender" class="form-control" required>
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="height">Height (cm)</label>
+              <input type="number" id="height" name="height" class="form-control" placeholder="e.g. 170" required>
+            </div>
+            <div class="form-group">
+              <label for="weight">Weight (kg)</label>
+              <input type="number" id="weight" name="weight" class="form-control" placeholder="e.g. 70" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="activityLevel">Activity Level</label>
+            <select id="activityLevel" name="activityLevel" class="form-control">
+              <option value="sedentary">Sedentary</option>
+              <option value="light">Lightly Active</option>
+              <option value="moderate" selected>Moderately Active</option>
+              <option value="active">Very Active</option>
+              <option value="veryActive">Extra Active</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="goal">Goal</label>
+              <select id="goal" name="goal" class="form-control" required>
+                <option value="">Select</option>
+                <option value="Weight Loss">Weight Loss</option>
+                <option value="Muscle Gain">Muscle Gain</option>
+                <option value="Maintenance">Maintenance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dietType">Diet Type</label>
+              <select id="dietType" name="dietType" class="form-control" required>
+                <option value="">Select</option>
+                <option value="Vegetarian">Vegetarian</option>
+                <option value="Vegan">Vegan</option>
+                <option value="Pescatarian">Pescatarian</option>
+                <option value="Omnivore">Omnivore</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="allergies">Allergies (optional)</label>
+            <input type="text" id="allergies" name="allergies" class="form-control" placeholder="e.g. nuts, dairy, gluten">
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block">Generate Diet Plan</button>
+        </form>
+      </div>
+
+      <!-- Result Panel -->
+      <div>
+        <div id="result">
+          <div class="card">
+            <div class="empty-state">
+              <div class="empty-icon">&#127823;</div>
+              <p>Fill in your details and click "Generate Diet Plan" to receive a personalized meal plan.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <footer class="page-footer">
+    &copy; 2025 Health+ Platform | All Rights Reserved
+  </footer>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calories.js"></script>
+  <script src="js/ui.js"></script>
   <script>
+    UI.renderNav('diet');
+
     const form = document.getElementById('dietForm');
     const resultDiv = document.getElementById('result');
+    const formFields = ['age', 'gender', 'height', 'weight', 'activityLevel', 'goal', 'dietType', 'allergies'];
 
+    /* Pre-fill from saved profile */
+    const profile = Storage.getProfile();
+    formFields.forEach(f => {
+      const el = document.getElementById(f);
+      if (el && profile[f]) el.value = profile[f];
+    });
+
+    /* Show dynamic calorie target as user fills the form */
+    function updateTargetBanner() {
+      const banner = document.getElementById('targetBanner');
+      const age = document.getElementById('age').value;
+      const gender = document.getElementById('gender').value;
+      const height = document.getElementById('height').value;
+      const weight = document.getElementById('weight').value;
+      const goal = document.getElementById('goal').value;
+      const activity = document.getElementById('activityLevel').value;
+
+      if (age && gender && height && weight && goal) {
+        const calc = CalorieCalculator.calculate({ age, gender, height, weight, activityLevel: activity, goal });
+        document.getElementById('targetDisplay').textContent = calc.targetCalories + ' kcal/day';
+        document.getElementById('targetDetails').innerHTML =
+          `BMR: ${calc.bmr} &bull; TDEE: ${calc.tdee} &bull; P: ${calc.macros.protein}g C: ${calc.macros.carbs}g F: ${calc.macros.fat}g`;
+        banner.style.display = 'block';
+      }
+    }
+
+    ['age', 'gender', 'height', 'weight', 'goal', 'activityLevel'].forEach(f => {
+      document.getElementById(f).addEventListener('change', updateTargetBanner);
+      document.getElementById(f).addEventListener('input', updateTargetBanner);
+    });
+    updateTargetBanner();
+
+    /* Form submission - sends to backend with dynamic calorie target */
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      resultDiv.innerHTML = "<p>Fetching diet plan...</p>";
 
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
+      resultDiv.innerHTML = `
+        <div class="card">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p style="color: var(--text-secondary);">Generating your personalized diet plan...</p>
+          </div>
+        </div>
+      `;
+
+      const data = {};
+      formFields.forEach(f => { data[f] = document.getElementById(f).value; });
+
+      /* Calculate dynamic calorie target to pass to the AI prompt */
+      const calc = CalorieCalculator.calculate({
+        age: data.age,
+        gender: data.gender,
+        height: data.height,
+        weight: data.weight,
+        activityLevel: data.activityLevel,
+        goal: data.goal,
+      });
+      data.targetCalories = calc.targetCalories;
+      data.macros = calc.macros;
 
       try {
         const response = await fetch('http://localhost:5000/diet', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+          body: JSON.stringify(data),
         });
 
         const json = await response.json();
 
         if (json.error) {
-          resultDiv.innerHTML = `<p class="error">Error: ${json.error}</p>`;
+          resultDiv.innerHTML = `<div class="card"><p style="color: var(--danger); text-align: center; padding: 20px;">Error: ${json.error}</p></div>`;
           return;
         }
 
         const plan = json.plan;
 
-        let html = `<h2>Total Calories: ${plan.totalCalories}</h2>`;
-        html += `<p>${plan.notes}</p>`;
-        plan.meals.forEach(meal => {
-          html += `<h3>${meal.meal} (${meal.calories} kcal)</h3><ul>`;
-          meal.items.forEach(item => html += `<li>${item}</li>`);
-          html += `</ul>`;
-        });
+        /* Save diet plan for grocery list generation and tracking */
+        Storage.saveDietPlan(plan);
 
-        if (plan.snacks?.length > 0) {
-          html += `<h3>Snacks</h3>`;
+        /* Render the plan summary */
+        let html = `
+          <div class="plan-summary">
+            <div style="font-size: 14px; opacity: 0.8; margin-bottom: 4px;">Total Daily Calories</div>
+            <div class="total-cal">${plan.totalCalories} kcal</div>
+            <div style="font-size: 14px; opacity: 0.8; margin-top: 4px;">${plan.notes || ''}</div>
+            <div class="plan-actions">
+              <button class="btn" style="background: rgba(255,255,255,0.2); color: #fff;" onclick="window.location.href='grocery.html'">&#128722; Generate Grocery List</button>
+              <button class="btn" style="background: rgba(255,255,255,0.2); color: #fff;" onclick="window.location.href='tracker.html'">&#128221; Start Tracking</button>
+            </div>
+          </div>
+        `;
+
+        /* Render individual meals */
+        if (plan.meals && plan.meals.length) {
+          plan.meals.forEach(meal => {
+            html += `
+              <div class="meal-card">
+                <h3>${meal.meal}</h3>
+                <div class="meal-meta">${meal.calories} kcal &bull; P: ${meal.protein || 0}g &bull; C: ${meal.carbs || 0}g &bull; F: ${meal.fat || 0}g</div>
+                <ul>${meal.items.map(item => `<li>${item}</li>`).join('')}</ul>
+              </div>
+            `;
+          });
+        }
+
+        /* Render snacks */
+        if (plan.snacks && plan.snacks.length) {
           plan.snacks.forEach(snack => {
-            html += `<ul>`;
-            snack.items.forEach(item => html += `<li>${item} (${snack.calories} kcal)</li>`);
-            html += `</ul>`;
+            html += `
+              <div class="meal-card" style="border-left-color: var(--accent);">
+                <h3>Snack</h3>
+                <div class="meal-meta">${snack.calories} kcal</div>
+                <ul>${snack.items.map(item => `<li>${item}</li>`).join('')}</ul>
+              </div>
+            `;
           });
         }
 
         resultDiv.innerHTML = html;
+        UI.showToast('Diet plan generated and saved!');
       } catch (err) {
-        resultDiv.innerHTML = `<p class="error">Error fetching diet plan.</p>`;
+        resultDiv.innerHTML = `<div class="card"><p style="color: var(--danger); text-align: center; padding: 20px;">Error fetching diet plan. Make sure the server is running.</p></div>`;
         console.error(err);
       }
     });

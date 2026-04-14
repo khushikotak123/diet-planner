@@ -1,285 +1,275 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>💊 Medication Reminder (Dark Mode)</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medication Reminder - Health+</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    /* Reminder-specific styles extending the shared design system */
+    .reminder-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
 
-  :root {
-    --bg: #0f172a;
-    --card: #1e293b;
-    --input: #334155;
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --muted: #94a3b8;
-    --text: #f1f5f9;
-    --radius: 14px;
-    --shadow: 0 8px 30px rgba(0,0,0,0.3);
-  }
+    .reminder-form .form-group {
+      flex: 1;
+      min-width: 150px;
+      margin-bottom: 0;
+    }
 
-  * {
-    box-sizing: border-box;
-    transition: all 0.2s ease;
-  }
+    .reminder-form .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+    }
 
-  body {
-    font-family: "Inter", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 40px;
-  }
+    .reminder-form .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
 
-  .container {
-    max-width: 720px;
-    margin: auto;
-  }
+    .reminder-form .checkbox-group label {
+      margin-bottom: 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
 
-  h1 {
-    font-size: 26px;
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 28px;
-    color: var(--accent);
-  }
+    .med-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: var(--surface-alt);
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      border-left: 4px solid var(--primary);
+      transition: var(--transition);
+    }
 
-  .card {
-    background: var(--card);
-    padding: 30px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-  }
+    .med-item:hover {
+      background: var(--primary-light);
+    }
 
-  label {
-    font-size: 14px;
-    color: var(--muted);
-    display: block;
-    margin-bottom: 6px;
-  }
+    .med-item .med-info strong {
+      font-size: 15px;
+      display: block;
+      margin-bottom: 4px;
+    }
 
-  input, button {
-    border: none;
-    outline: none;
-    border-radius: var(--radius);
-    font-size: 15px;
-    padding: 12px 14px;
-  }
+    .med-item .med-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
 
-  input {
-    background: var(--input);
-    color: var(--text);
-    width: 100%;
-    margin-bottom: 16px;
-  }
-
-  input::placeholder {
-    color: #94a3b8;
-  }
-
-  button {
-    background: var(--accent);
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background: var(--accent-hover);
-    transform: translateY(-1px);
-  }
-
-  form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  form input[type="text"], form input[type="time"] {
-    flex: 1;
-  }
-
-  form label {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    gap: 6px;
-    margin-right: 8px;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 10px;
-  }
-
-  li {
-    background: #1e293b;
-    padding: 14px 18px;
-    border-radius: var(--radius);
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-
-  .meta {
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .remove-btn {
-    background: none;
-    color: #f87171;
-    border: 1px solid #f87171;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-
-  .remove-btn:hover {
-    background: #f87171;
-    color: #fff;
-  }
-
-  .phone-input {
-    margin-bottom: 25px;
-  }
-
-  .footer {
-    text-align: center;
-    font-size: 13px;
-    margin-top: 25px;
-    color: var(--muted);
-  }
-
-  .fade-in {
-    animation: fadeIn 0.4s ease-in-out;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
+    @media (max-width: 768px) {
+      .reminder-form {
+        flex-direction: column;
+      }
+      .reminder-form .form-group {
+        min-width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="container fade-in">
-  <h1>💊 Medication Reminder</h1>
-  <div class="card">
-    <!-- Phone number input -->
-    <div class="phone-input">
-      <label>Phone Number (with country code):</label>
-      <input type="tel" id="phoneNumber" placeholder="+91XXXXXXXXXX" />
+  <div class="top-nav" id="top-nav"></div>
+
+  <div class="page-container fade-in">
+    <div class="page-header">
+      <h1>Medication Reminder</h1>
+      <p>Track your medications and get timely SMS reminders to never miss a dose.</p>
     </div>
 
-    <!-- Add medication form -->
-    <form id="addForm">
-      <input type="text" id="medName" placeholder="Medication name" required />
-      <input type="time" id="medTime" required />
-      <label><input type="checkbox" id="repeatDaily" /> Repeat daily</label>
-      <button type="submit">➕ Add Reminder</button>
-    </form>
+    <div class="grid-2">
+      <!-- Add Medication -->
+      <div>
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h2>Add Reminder</h2>
+          </div>
+          <!-- Phone number -->
+          <div class="form-group">
+            <label for="phoneNumber">Phone Number (with country code)</label>
+            <input type="tel" id="phoneNumber" class="form-control" placeholder="+91XXXXXXXXXX">
+          </div>
+          <!-- Medication form -->
+          <form id="addForm" class="reminder-form">
+            <div class="form-group">
+              <label for="medName">Medication Name</label>
+              <input type="text" id="medName" class="form-control" placeholder="e.g. Vitamin D" required>
+            </div>
+            <div class="form-group">
+              <label for="medTime">Time</label>
+              <input type="time" id="medTime" class="form-control" required>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="repeatDaily">
+              <label for="repeatDaily">Repeat daily</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Reminder</button>
+          </form>
+        </div>
 
-    <ul id="medList"></ul>
+        <div class="card">
+          <div class="card-header">
+            <h2>How It Works</h2>
+          </div>
+          <div style="font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+            <p>1. Enter your phone number with country code</p>
+            <p>2. Add medication name and scheduled time</p>
+            <p>3. Optionally enable daily repeat</p>
+            <p>4. You'll receive an SMS reminder at the scheduled time</p>
+            <br>
+            <p style="font-size: 13px; color: var(--text-muted);">SMS powered by Twilio. The server must be running for SMS delivery.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medication List -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Your Reminders</h2>
+          <span id="medCount" style="font-size: 14px; color: var(--text-secondary);"></span>
+        </div>
+        <div id="medList"></div>
+      </div>
+    </div>
   </div>
 
-  <div class="footer">Made with ❤️ | SMS powered by Twilio</div>
-</div>
+  <footer class="page-footer">
+    &copy; 2025 Health+ Platform | All Rights Reserved
+  </footer>
 
-<script>
-const BACKEND_URL = "http://localhost:5000/send-sms";
-const KEY = "meds_sms_v1";
-const PHONE_KEY = "user_phone";
-let meds = [];
+  <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    UI.renderNav('reminder');
 
-function uid(){ return Date.now() + Math.floor(Math.random()*1000); }
+    /* --- Medication Reminder Logic (preserved from original) --- */
+    const BACKEND_URL = "http://localhost:5000/send-sms";
+    const KEY = "meds_sms_v1";
+    const PHONE_KEY = "user_phone";
+    let meds = [];
 
-function load(){
-  const raw = localStorage.getItem(KEY);
-  meds = raw ? JSON.parse(raw) : [];
-  const savedPhone = localStorage.getItem(PHONE_KEY);
-  if(savedPhone) document.getElementById("phoneNumber").value = savedPhone;
-}
-
-function save(){ localStorage.setItem(KEY, JSON.stringify(meds)); }
-
-function render(){
-  const ul = document.getElementById("medList");
-  ul.innerHTML = meds.length ? "" : "<li>No reminders set.</li>";
-  meds.forEach(m=>{
-    const li=document.createElement("li");
-    li.innerHTML=`
-      <div>
-        <strong>${m.name}</strong>
-        <div class="meta">${m.time}${m.repeat?" • repeats daily":""}</div>
-      </div>
-      <button class="remove-btn" onclick="removeMed(${m.id})">Delete</button>`;
-    ul.appendChild(li);
-  });
-}
-
-function nextOccurrence(med){
-  const [hh,mm]=med.time.split(":").map(Number);
-  const now=new Date();
-  const next=new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm,0,0);
-  if(next<=now) next.setDate(next.getDate()+1);
-  return next;
-}
-
-function scheduleMed(med){
-  const next=nextOccurrence(med);
-  const delay=next - new Date();
-  console.log(`⏰ Scheduling ${med.name} in ${Math.round(delay/60000)} min`);
-
-  setTimeout(async ()=>{
-    const phone=document.getElementById("phoneNumber").value.trim();
-    if(!phone){ alert("Please enter your phone number to receive SMS!"); return; }
-    localStorage.setItem(PHONE_KEY, phone);
-    const message=`⏰ Reminder:  Time to take your medication ."${med.name}" (${med.time})`;
-    try{
-      await fetch(BACKEND_URL,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ phoneNumber:phone, message })
-      });
-      console.log("✅ SMS sent successfully");
-    }catch(err){
-      console.error("❌ SMS failed:",err);
+    function uid() {
+      return Date.now() + Math.floor(Math.random() * 1000);
     }
-    if(med.repeat){ scheduleMed(med); }
-    else { removeMed(med.id); }
-  }, delay);
-}
 
-function addMed(name,time,repeat){
-  const m={id:uid(),name,time,repeat};
-  meds.push(m);
-  save(); render();
-  scheduleMed(m);
-}
+    function load() {
+      const raw = localStorage.getItem(KEY);
+      meds = raw ? JSON.parse(raw) : [];
+      const savedPhone = localStorage.getItem(PHONE_KEY);
+      if (savedPhone) document.getElementById("phoneNumber").value = savedPhone;
+    }
 
-function removeMed(id){
-  meds=meds.filter(m=>m.id!==id);
-  save(); render();
-}
+    function save() {
+      localStorage.setItem(KEY, JSON.stringify(meds));
+    }
 
-document.getElementById("addForm").addEventListener("submit",(e)=>{
-  e.preventDefault();
-  const name=document.getElementById("medName").value.trim();
-  const time=document.getElementById("medTime").value;
-  const repeat=document.getElementById("repeatDaily").checked;
-  if(!name||!time)return alert("Please fill all fields!");
-  addMed(name,time,repeat);
-  e.target.reset();
-});
+    function render() {
+      const container = document.getElementById("medList");
+      const countEl = document.getElementById("medCount");
+      countEl.textContent = `${meds.length} reminder${meds.length !== 1 ? 's' : ''}`;
 
-load(); render();
-meds.forEach(scheduleMed);
-</script>
+      if (!meds.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">&#128138;</div>
+            <p>No reminders set. Add your first medication above.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = meds.map(m => `
+        <div class="med-item">
+          <div class="med-info">
+            <strong>${m.name}</strong>
+            <div class="med-meta">
+              &#128339; ${m.time} ${m.repeat ? '&bull; Repeats daily' : '&bull; One-time'}
+            </div>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="removeMed(${m.id})">Delete</button>
+        </div>
+      `).join('');
+    }
+
+    function nextOccurrence(med) {
+      const [hh, mm] = med.time.split(":").map(Number);
+      const now = new Date();
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
+      if (next <= now) next.setDate(next.getDate() + 1);
+      return next;
+    }
+
+    function scheduleMed(med) {
+      const next = nextOccurrence(med);
+      const delay = next - new Date();
+      console.log(`Scheduling ${med.name} in ${Math.round(delay / 60000)} min`);
+
+      setTimeout(async () => {
+        const phone = document.getElementById("phoneNumber").value.trim();
+        if (!phone) {
+          UI.showToast("Please enter your phone number to receive SMS!", "warning");
+          return;
+        }
+        localStorage.setItem(PHONE_KEY, phone);
+        const message = `Reminder: Time to take your medication "${med.name}" (${med.time})`;
+        try {
+          await fetch(BACKEND_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phoneNumber: phone, message }),
+          });
+          UI.showToast(`SMS reminder sent for ${med.name}!`);
+        } catch (err) {
+          console.error("SMS failed:", err);
+          UI.showToast("Failed to send SMS reminder", "error");
+        }
+        if (med.repeat) {
+          scheduleMed(med);
+        } else {
+          removeMed(med.id);
+        }
+      }, delay);
+    }
+
+    function addMed(name, time, repeat) {
+      const m = { id: uid(), name, time, repeat };
+      meds.push(m);
+      save();
+      render();
+      scheduleMed(m);
+      UI.showToast(`Reminder added for ${name}`);
+    }
+
+    function removeMed(id) {
+      meds = meds.filter(m => m.id !== id);
+      save();
+      render();
+    }
+
+    document.getElementById("addForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("medName").value.trim();
+      const time = document.getElementById("medTime").value;
+      const repeat = document.getElementById("repeatDaily").checked;
+      if (!name || !time) {
+        UI.showToast("Please fill all fields!", "warning");
+        return;
+      }
+      addMed(name, time, repeat);
+      e.target.reset();
+    });
+
+    load();
+    render();
+    meds.forEach(scheduleMed);
+  </script>
 </body>
 </html>

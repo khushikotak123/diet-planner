@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Tracker - Health+</title>
+  <link rel="stylesheet" href="css/common.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="top-nav" id="top-nav"></div>
+
+  <div class="page-container fade-in">
+    <div class="page-header">
+      <h1>Meal Tracker</h1>
+      <p>Log your meals and track daily nutrition intake.</p>
+    </div>
+
+    <!-- Profile prompt -->
+    <div id="profilePrompt"></div>
+
+    <div id="trackerContent">
+      <!-- Today's Progress -->
+      <div class="stats-grid" id="progressCards"></div>
+
+      <div class="grid-2">
+        <!-- Log Meal Form -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Log a Meal</h2>
+          </div>
+          <form id="mealForm">
+            <div class="form-group">
+              <label for="mealName">Meal Name</label>
+              <input type="text" id="mealName" class="form-control" placeholder="e.g. Grilled Chicken Salad" required>
+            </div>
+            <div class="form-group">
+              <label for="mealType">Meal Type</label>
+              <select id="mealType" class="form-control">
+                <option value="Breakfast">Breakfast</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Snack">Snack</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="mealCalories">Calories (kcal)</label>
+                <input type="number" id="mealCalories" class="form-control" placeholder="e.g. 450" min="0" required>
+              </div>
+              <div class="form-group">
+                <label for="mealProtein">Protein (g)</label>
+                <input type="number" id="mealProtein" class="form-control" placeholder="e.g. 30" min="0">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="mealCarbs">Carbs (g)</label>
+                <input type="number" id="mealCarbs" class="form-control" placeholder="e.g. 40" min="0">
+              </div>
+              <div class="form-group">
+                <label for="mealFat">Fat (g)</label>
+                <input type="number" id="mealFat" class="form-control" placeholder="e.g. 15" min="0">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Log Meal</button>
+          </form>
+        </div>
+
+        <!-- Meal Suggestions -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Meal Suggestions</h2>
+          </div>
+          <div class="form-group">
+            <label for="suggestionFilter">Filter by meal type</label>
+            <select id="suggestionFilter" class="form-control" onchange="renderSuggestions()">
+              <option value="">All Meals</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+              <option value="Snack">Snack</option>
+            </select>
+          </div>
+          <div id="suggestions"></div>
+        </div>
+      </div>
+
+      <!-- Today's Meal Log -->
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-header">
+          <h2>Today's Meals</h2>
+          <span id="mealCount" style="font-size: 14px; color: var(--text-secondary);"></span>
+        </div>
+        <div id="todayMeals"></div>
+      </div>
+
+      <!-- 7-Day History -->
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-header">
+          <h2>7-Day History</h2>
+        </div>
+        <canvas id="historyChart" height="150"></canvas>
+        <div id="historyList" style="margin-top: 20px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    &copy; 2025 Health+ Platform | All Rights Reserved
+  </footer>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calories.js"></script>
+  <script src="js/recommendations.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    UI.renderNav('tracker');
+
+    const promptEl = document.getElementById('profilePrompt');
+    const contentEl = document.getElementById('trackerContent');
+
+    if (UI.showProfilePrompt(promptEl)) {
+      contentEl.style.display = 'none';
+    } else {
+      initTracker();
+    }
+
+    function initTracker() {
+      renderProgress();
+      renderTodayMeals();
+      renderSuggestions();
+      renderHistory();
+    }
+
+    /* --- Progress Cards --- */
+    function renderProgress() {
+      const profile = Storage.getProfile();
+      const calc = CalorieCalculator.calculate(profile);
+      const meals = Storage.getMealLog();
+
+      const consumed = meals.reduce((s, m) => s + (Number(m.calories) || 0), 0);
+      const protein = meals.reduce((s, m) => s + (Number(m.protein) || 0), 0);
+      const remaining = Math.max(0, calc.targetCalories - consumed);
+      const pct = Math.min(100, Math.round((consumed / calc.targetCalories) * 100));
+
+      document.getElementById('progressCards').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon green">&#127919;</div>
+          <div class="stat-label">Target</div>
+          <div class="stat-value">${calc.targetCalories} <span class="stat-unit">kcal</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">&#128293;</div>
+          <div class="stat-label">Consumed</div>
+          <div class="stat-value">${consumed} <span class="stat-unit">kcal</span></div>
+          <div class="progress-bar" style="margin-top: 8px;"><div class="progress-fill" style="width: ${pct}%;"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">&#9201;</div>
+          <div class="stat-label">Remaining</div>
+          <div class="stat-value">${remaining} <span class="stat-unit">kcal</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">&#129385;</div>
+          <div class="stat-label">Protein</div>
+          <div class="stat-value">${protein} <span class="stat-unit">/ ${calc.macros.protein}g</span></div>
+        </div>
+      `;
+    }
+
+    /* --- Log Meal --- */
+    document.getElementById('mealForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entry = {
+        name: document.getElementById('mealName').value.trim(),
+        mealType: document.getElementById('mealType').value,
+        calories: Number(document.getElementById('mealCalories').value) || 0,
+        protein: Number(document.getElementById('mealProtein').value) || 0,
+        carbs: Number(document.getElementById('mealCarbs').value) || 0,
+        fat: Number(document.getElementById('mealFat').value) || 0,
+      };
+
+      Storage.saveMealEntry(entry);
+      e.target.reset();
+      UI.showToast('Meal logged successfully!');
+      renderProgress();
+      renderTodayMeals();
+      renderSuggestions();
+    });
+
+    /* --- Today's Meals --- */
+    function renderTodayMeals() {
+      const meals = Storage.getMealLog();
+      const container = document.getElementById('todayMeals');
+      document.getElementById('mealCount').textContent = `${meals.length} meal${meals.length !== 1 ? 's' : ''} logged`;
+
+      if (!meals.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">&#127869;</div>
+            <p>No meals logged today. Use the form above to start tracking.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = meals.map(m => `
+        <div class="list-item">
+          <div class="item-info">
+            <span class="item-icon">${getMealIcon(m.mealType)}</span>
+            <div>
+              <div class="item-name">${m.name}</div>
+              <div class="item-meta">${m.mealType} &bull; ${m.calories} kcal</div>
+            </div>
+          </div>
+          <div class="item-actions">
+            <span style="font-size: 12px; color: var(--text-muted); margin-right: 8px;">
+              P:${m.protein || 0}g C:${m.carbs || 0}g F:${m.fat || 0}g
+            </span>
+            <button class="btn btn-sm btn-danger" onclick="deleteMeal(${m.id})">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function deleteMeal(id) {
+      Storage.removeMealEntry(id);
+      renderProgress();
+      renderTodayMeals();
+      renderSuggestions();
+      UI.showToast('Meal removed');
+    }
+
+    function getMealIcon(type) {
+      const icons = { Breakfast: '&#127749;', Lunch: '&#127838;', Dinner: '&#127869;', Snack: '&#127852;' };
+      return icons[type] || '&#127869;';
+    }
+
+    /* --- Meal Suggestions --- */
+    function renderSuggestions() {
+      const profile = Storage.getProfile();
+      const calc = CalorieCalculator.calculate(profile);
+      const meals = Storage.getMealLog();
+
+      const consumed = meals.reduce((s, m) => s + (Number(m.calories) || 0), 0);
+      const consumedProtein = meals.reduce((s, m) => s + (Number(m.protein) || 0), 0);
+      const remaining = Math.max(0, calc.targetCalories - consumed);
+      const remainingProtein = Math.max(0, calc.macros.protein - consumedProtein);
+
+      const filter = document.getElementById('suggestionFilter').value || undefined;
+      const suggestions = MealRecommendations.getSuggestions(remaining, remainingProtein, profile.dietType, filter);
+
+      const container = document.getElementById('suggestions');
+
+      if (!suggestions.length) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding: 24px;">
+            <p>No suggestions available for your remaining calories (${remaining} kcal).</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = suggestions.map(s => `
+        <div class="list-item" style="cursor: pointer;" onclick="quickLog('${s.name.replace(/'/g, "\\'")}', ${s.calories}, ${s.protein}, ${s.carbs}, ${s.fat}, '${s.category}')">
+          <div class="item-info">
+            <span class="item-icon">${getMealIcon(s.category)}</span>
+            <div>
+              <div class="item-name">${s.name}</div>
+              <div class="item-meta">${s.category} &bull; ${s.calories} kcal &bull; ${s.protein}g protein</div>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-primary">+ Log</button>
+        </div>
+      `).join('');
+    }
+
+    /* Quick log from suggestion */
+    function quickLog(name, calories, protein, carbs, fat, category) {
+      const entry = { name, calories, protein, carbs, fat, mealType: category === 'Snack' ? 'Snack' : category };
+      Storage.saveMealEntry(entry);
+      UI.showToast(`${name} logged!`);
+      renderProgress();
+      renderTodayMeals();
+      renderSuggestions();
+    }
+
+    /* --- 7-Day History --- */
+    function renderHistory() {
+      const profile = Storage.getProfile();
+      const calc = CalorieCalculator.calculate(profile);
+      const history = Storage.getMealHistory(7);
+
+      /* Chart */
+      const labels = history.map(d => UI.formatDate(d.date)).reverse();
+      const data = history.map(d => d.totalCalories).reverse();
+
+      new Chart(document.getElementById('historyChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Calories',
+              data,
+              borderColor: '#2a9d8f',
+              backgroundColor: 'rgba(42,157,143,0.1)',
+              fill: true,
+              tension: 0.3,
+              borderWidth: 2,
+              pointRadius: 4,
+            },
+            {
+              label: 'Target',
+              data: history.map(() => calc.targetCalories),
+              borderColor: '#e76f51',
+              borderDash: [6, 3],
+              borderWidth: 2,
+              pointRadius: 0,
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } },
+          scales: { y: { beginAtZero: true } },
+        },
+      });
+
+      /* History list */
+      const list = document.getElementById('historyList');
+      list.innerHTML = history.map(d => `
+        <div class="list-item">
+          <div class="item-info">
+            <span class="item-icon">&#128197;</span>
+            <div>
+              <div class="item-name">${UI.formatDate(d.date)}</div>
+              <div class="item-meta">${d.meals.length} meal${d.meals.length !== 1 ? 's' : ''} logged</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 600;">${d.totalCalories} kcal</div>
+            <div style="font-size: 12px; color: var(--text-muted);">P:${d.totalProtein}g C:${d.totalCarbs}g F:${d.totalFat}g</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

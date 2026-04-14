@@ -3,97 +3,194 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Health & Wellbeing Platform</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Health+ | Your Personal Health & Wellbeing Platform</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: #fff;
+      text-align: center;
+      padding: 80px 24px 60px;
+    }
+
+    .hero h2 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero p {
+      font-size: 17px;
+      max-width: 600px;
+      margin: 0 auto 32px;
+      opacity: 0.9;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hero .btn {
+      padding: 14px 32px;
+      font-size: 16px;
+      border-radius: var(--radius-md);
+    }
+
+    /* Feature Cards Grid */
+    .features-section {
+      padding: 60px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .features-section h2 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .features-section > p {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .feature-card .icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .feature-card .card-link {
+      display: inline-block;
+      margin-top: 16px;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .hero h2 { font-size: 26px; }
+      .hero { padding: 60px 20px 40px; }
+      .features-section { padding: 40px 16px; }
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Health & Wellbeing Platform</h1>
-    <nav>
-      <ul>
-        <li><a href="diet.html">Diet Planner</a></li>
-        <li><a href="reminder.html">Medication Reminder</a></li>
-        <li><a href="http://localhost:8501/">AI Chatbot</a></li>
-      </ul>
-    </nav>
-  </header>
+  <div class="top-nav" id="top-nav"></div>
 
-  <section class="hero">
-    <h2>Take charge of your health with AI-powered support</h2>
-    <p>Personalized diet plans, smart medication reminders, and an interactive chatbot – all in one place.</p>
-    <button onclick="scrollToFeatures()">Explore Features</button>
-  </section>
-
-  <section class="features" id="features">
-    <div class="feature-card" onclick="openModal('diet')">
-      <h3>🍏 Diet Planner</h3>
-      <p>Get personalized meal plans tailored to your health data and preferences.</p>
-    </div>
-
-    <div class="feature-card" onclick="openModal('reminder')">
-      <h3>💊 Medication Reminder</h3>
-      <p>Track your medicines and get timely reminders to never miss a dose.</p>
-    </div>
-
-    <div class="feature-card" onclick="openModal('chatbot')">
-      <h3>🤖 AI Chatbot</h3>
-      <p>Ask questions and get accurate, AI-powered health guidance instantly.</p>
+  <!-- Hero Section -->
+  <section class="hero fade-in">
+    <h2>Take Charge of Your Health</h2>
+    <p>Personalized diet plans, smart calorie tracking, meal recommendations, and medication reminders &mdash; all powered by intelligent tools in one platform.</p>
+    <div class="hero-actions">
+      <a href="dashboard.html" class="btn btn-accent btn-lg">Go to Dashboard</a>
+      <a href="profile.html" class="btn btn-lg" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);">Set Up Profile</a>
     </div>
   </section>
 
-  <!-- Modal -->
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal()">&times;</span>
-      <h2 id="modal-title"></h2>
-      <p id="modal-text"></p>
-    </div>
-  </div>
+  <!-- Features Section -->
+  <section class="features-section" id="features">
+    <h2>Everything You Need</h2>
+    <p>A complete health toolkit designed to help you eat better, stay hydrated, and never miss a medication.</p>
 
-  <footer>
-    <p>© 2025 Health & Wellbeing Platform | All Rights Reserved</p>
+    <div class="features-grid">
+      <a href="dashboard.html" class="feature-card">
+        <div class="icon">&#128202;</div>
+        <h3>Smart Dashboard</h3>
+        <p>See your daily calorie progress, macro breakdown, water intake, and weekly trends at a glance.</p>
+        <span class="card-link">View Dashboard &rarr;</span>
+      </a>
+
+      <a href="diet.html" class="feature-card">
+        <div class="icon">&#127823;</div>
+        <h3>AI Diet Planner</h3>
+        <p>Get personalized meal plans with dynamic calorie targets based on your BMR, TDEE, and fitness goals.</p>
+        <span class="card-link">Plan Diet &rarr;</span>
+      </a>
+
+      <a href="tracker.html" class="feature-card">
+        <div class="icon">&#128221;</div>
+        <h3>Meal Tracker</h3>
+        <p>Log meals, track calories vs target, and view your 7-day nutrition history with charts.</p>
+        <span class="card-link">Track Meals &rarr;</span>
+      </a>
+
+      <a href="grocery.html" class="feature-card">
+        <div class="icon">&#128722;</div>
+        <h3>Grocery List</h3>
+        <p>Auto-generate a categorized grocery list from your diet plan, or add items manually.</p>
+        <span class="card-link">View List &rarr;</span>
+      </a>
+
+      <a href="profile.html" class="feature-card">
+        <div class="icon">&#128100;</div>
+        <h3>Smart Calories</h3>
+        <p>Dynamic BMR &amp; TDEE calculations with goal-based adjustments and macro recommendations.</p>
+        <span class="card-link">Set Up Profile &rarr;</span>
+      </a>
+
+      <a href="reminder.html" class="feature-card">
+        <div class="icon">&#128138;</div>
+        <h3>Medication Reminder</h3>
+        <p>Track medications and get timely SMS reminders to never miss a dose.</p>
+        <span class="card-link">Set Reminders &rarr;</span>
+      </a>
+    </div>
+  </section>
+
+  <footer class="page-footer">
+    &copy; 2025 Health+ Platform | All Rights Reserved
   </footer>
 
+  <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
   <script>
-    function scrollToFeatures() {
-      document.getElementById("features").scrollIntoView({ behavior: "smooth" });
-    }
-
-    // Modal handling
-    const modal = document.getElementById("modal");
-    const modalTitle = document.getElementById("modal-title");
-    const modalText = document.getElementById("modal-text");
-
-    function openModal(feature) {
-      const info = {
-        diet: {
-          title: "🍏 Diet Planner",
-          text: "Our Diet Planner helps you create personalized meal plans based on your preferences, fitness goals, and health data. You’ll receive balanced nutrition suggestions and can track your daily intake easily."
-        },
-        reminder: {
-          title: "💊 Medication Reminder",
-          text: "Never miss a dose again! Our Medication Reminder sends smart notifications to your phone or email, helping you stay on track with your prescribed medications."
-        },
-        chatbot: {
-          title: "🤖 AI Chatbot",
-          text: "The AI Chatbot provides instant health insights, fitness advice, and answers to your questions 24/7 — making it your personal digital health assistant."
-        }
-      };
-
-      modalTitle.innerText = info[feature].title;
-      modalText.innerText = info[feature].text;
-      modal.style.display = "flex";
-    }
-
-    function closeModal() {
-      modal.style.display = "none";
-    }
-
-    window.onclick = function(event) {
-      if (event.target === modal) {
-        closeModal();
-      }
-    };
+    UI.renderNav('home');
   </script>
 </body>
 </html>

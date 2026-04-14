@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grocery List - Health+</title>
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .grocery-item { user-select: none; }
+    .grocery-item.checked .item-name {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+    .grocery-item .check-btn {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .grocery-item.checked .check-btn {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .category-header {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 0 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav" id="top-nav"></div>
+
+  <div class="page-container fade-in">
+    <div class="page-header">
+      <h1>Grocery List</h1>
+      <p>Auto-generated from your diet plan or add items manually.</p>
+    </div>
+
+    <div class="grid-2">
+      <!-- Grocery List -->
+      <div>
+        <!-- Stats -->
+        <div class="stats-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+          <div class="stat-card">
+            <div class="stat-label">Total Items</div>
+            <div class="stat-value" id="totalItems">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Checked Off</div>
+            <div class="stat-value" id="checkedItems">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Shopping List</h2>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-sm btn-secondary" onclick="clearChecked()">Clear Checked</button>
+              <button class="btn btn-sm btn-danger" onclick="clearAll()">Clear All</button>
+            </div>
+          </div>
+          <div id="groceryList"></div>
+        </div>
+      </div>
+
+      <!-- Add Items / Generate -->
+      <div>
+        <!-- Manual Add -->
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <h2>Add Item</h2>
+          </div>
+          <form id="addItemForm">
+            <div class="form-group">
+              <label for="itemName">Item Name</label>
+              <input type="text" id="itemName" class="form-control" placeholder="e.g. Brown Rice" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="itemCategory">Category</label>
+                <select id="itemCategory" class="form-control">
+                  <option value="Produce">Produce</option>
+                  <option value="Protein">Protein</option>
+                  <option value="Dairy">Dairy</option>
+                  <option value="Grains">Grains</option>
+                  <option value="Pantry">Pantry</option>
+                  <option value="Spices">Spices</option>
+                  <option value="Beverages">Beverages</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="itemQuantity">Quantity</label>
+                <input type="text" id="itemQuantity" class="form-control" placeholder="e.g. 2 lbs">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Add to List</button>
+          </form>
+        </div>
+
+        <!-- Auto-Generate -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Auto-Generate from Diet Plan</h2>
+          </div>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">
+            Generate a weekly grocery list from your saved diet plan. This will extract all ingredients and organize them by category.
+          </p>
+          <button class="btn btn-accent btn-block" onclick="generateFromPlan()">Generate Grocery List</button>
+          <div id="generateStatus" style="margin-top: 12px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    &copy; 2025 Health+ Platform | All Rights Reserved
+  </footer>
+
+  <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    UI.renderNav('grocery');
+
+    /* --- Render Grocery List --- */
+    function renderList() {
+      const list = Storage.getGroceryList();
+      const container = document.getElementById('groceryList');
+
+      /* Update stats */
+      document.getElementById('totalItems').textContent = list.length;
+      document.getElementById('checkedItems').textContent = list.filter(i => i.checked).length;
+
+      if (!list.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">&#128722;</div>
+            <p>Your grocery list is empty. Add items or generate from your diet plan.</p>
+          </div>
+        `;
+        return;
+      }
+
+      /* Group by category */
+      const grouped = {};
+      list.forEach(item => {
+        const cat = item.category || 'Other';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(item);
+      });
+
+      let html = '';
+      const categoryOrder = ['Produce', 'Protein', 'Dairy', 'Grains', 'Pantry', 'Spices', 'Beverages', 'Other'];
+      categoryOrder.forEach(cat => {
+        if (!grouped[cat]) return;
+        html += `<div class="category-header">${cat}</div>`;
+        grouped[cat].forEach(item => {
+          html += `
+            <div class="list-item grocery-item ${item.checked ? 'checked' : ''}" onclick="toggleItem(${item.id})">
+              <div class="item-info">
+                <button class="check-btn">${item.checked ? '&#10003;' : ''}</button>
+                <div>
+                  <div class="item-name">${item.name}</div>
+                  ${item.quantity ? `<div class="item-meta">${item.quantity}</div>` : ''}
+                </div>
+              </div>
+              <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeItem(${item.id})">&#10005;</button>
+            </div>
+          `;
+        });
+      });
+
+      container.innerHTML = html;
+    }
+
+    /* --- Add Item --- */
+    document.getElementById('addItemForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const item = {
+        name: document.getElementById('itemName').value.trim(),
+        category: document.getElementById('itemCategory').value,
+        quantity: document.getElementById('itemQuantity').value.trim(),
+      };
+      Storage.addGroceryItem(item);
+      e.target.reset();
+      renderList();
+      UI.showToast('Item added!');
+    });
+
+    /* --- Toggle / Remove --- */
+    function toggleItem(id) {
+      Storage.toggleGroceryItem(id);
+      renderList();
+    }
+
+    function removeItem(id) {
+      Storage.removeGroceryItem(id);
+      renderList();
+    }
+
+    function clearChecked() {
+      const list = Storage.getGroceryList().filter(i => !i.checked);
+      Storage.saveGroceryList(list);
+      renderList();
+      UI.showToast('Checked items cleared');
+    }
+
+    function clearAll() {
+      if (confirm('Clear entire grocery list?')) {
+        Storage.saveGroceryList([]);
+        renderList();
+        UI.showToast('Grocery list cleared');
+      }
+    }
+
+    /* --- Auto-Generate from Diet Plan --- */
+    function generateFromPlan() {
+      const plan = Storage.getDietPlan();
+      const statusEl = document.getElementById('generateStatus');
+
+      if (!plan || !plan.meals) {
+        statusEl.innerHTML = `<p style="color: var(--danger); font-size: 14px;">No saved diet plan found. Go to <a href="diet.html">Diet Planner</a> and generate a plan first.</p>`;
+        return;
+      }
+
+      /* Extract items from meals */
+      const items = [];
+      const seen = new Set();
+
+      const categorize = (itemName) => {
+        const lower = itemName.toLowerCase();
+        if (/chicken|turkey|salmon|tuna|beef|fish|egg|tofu|paneer|shrimp|tempeh|lentil|bean|chickpea/.test(lower)) return 'Protein';
+        if (/milk|yogurt|cheese|cottage|cream|butter/.test(lower)) return 'Dairy';
+        if (/rice|bread|oat|pasta|quinoa|roti|tortilla|naan|cereal|granola/.test(lower)) return 'Grains';
+        if (/oil|honey|sauce|vinegar|dressing|tahini|peanut butter|almond butter/.test(lower)) return 'Pantry';
+        if (/salt|pepper|cumin|turmeric|cinnamon|ginger|garlic powder|paprika/.test(lower)) return 'Spices';
+        if (/water|juice|tea|coffee|smoothie/.test(lower)) return 'Beverages';
+        return 'Produce';
+      };
+
+      const addItems = (foodItems) => {
+        foodItems.forEach(name => {
+          const normalized = name.trim().toLowerCase();
+          if (!seen.has(normalized) && normalized.length > 1) {
+            seen.add(normalized);
+            items.push({
+              name: name.trim(),
+              category: categorize(name),
+              quantity: '',
+            });
+          }
+        });
+      };
+
+      plan.meals.forEach(meal => {
+        if (meal.items) addItems(meal.items);
+      });
+
+      if (plan.snacks) {
+        plan.snacks.forEach(snack => {
+          if (snack.items) addItems(snack.items);
+        });
+      }
+
+      if (items.length === 0) {
+        statusEl.innerHTML = `<p style="color: var(--warning); font-size: 14px;">Could not extract items from the diet plan.</p>`;
+        return;
+      }
+
+      /* Add to grocery list (avoid duplicates with existing) */
+      const existing = Storage.getGroceryList();
+      const existingNames = new Set(existing.map(i => i.name.toLowerCase()));
+      let added = 0;
+
+      items.forEach(item => {
+        if (!existingNames.has(item.name.toLowerCase())) {
+          Storage.addGroceryItem(item);
+          added++;
+        }
+      });
+
+      renderList();
+      statusEl.innerHTML = `<p style="color: var(--success); font-size: 14px;">Added ${added} items from your diet plan!</p>`;
+      UI.showToast(`${added} grocery items generated!`);
+    }
+
+    renderList();
+  </script>
+</body>
+</html>
