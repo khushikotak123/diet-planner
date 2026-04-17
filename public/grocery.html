@@ -167,18 +167,19 @@
       const categoryOrder = ['Produce', 'Protein', 'Dairy', 'Grains', 'Pantry', 'Spices', 'Beverages', 'Other'];
       categoryOrder.forEach(cat => {
         if (!grouped[cat]) return;
-        html += `<div class="category-header">${cat}</div>`;
+        html += `<div class="category-header">${UI.escapeHtml(cat)}</div>`;
         grouped[cat].forEach(item => {
+          const safeId = Number(item.id) || 0;
           html += `
-            <div class="list-item grocery-item ${item.checked ? 'checked' : ''}" onclick="toggleItem(${item.id})">
+            <div class="list-item grocery-item ${item.checked ? 'checked' : ''}" onclick="toggleItem(${safeId})">
               <div class="item-info">
                 <button class="check-btn">${item.checked ? '&#10003;' : ''}</button>
                 <div>
-                  <div class="item-name">${item.name}</div>
-                  ${item.quantity ? `<div class="item-meta">${item.quantity}</div>` : ''}
+                  <div class="item-name">${UI.escapeHtml(item.name)}</div>
+                  ${item.quantity ? `<div class="item-meta">${UI.escapeHtml(item.quantity)}</div>` : ''}
                 </div>
               </div>
-              <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeItem(${item.id})">&#10005;</button>
+              <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeItem(${safeId})">&#10005;</button>
             </div>
           `;
         });

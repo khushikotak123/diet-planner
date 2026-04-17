@@ -189,12 +189,12 @@
       container.innerHTML = meds.map(m => `
         <div class="med-item">
           <div class="med-info">
-            <strong>${m.name}</strong>
+            <strong>${UI.escapeHtml(m.name)}</strong>
             <div class="med-meta">
-              &#128339; ${m.time} ${m.repeat ? '&bull; Repeats daily' : '&bull; One-time'}
+              &#128339; ${UI.escapeHtml(m.time)} ${m.repeat ? '&bull; Repeats daily' : '&bull; One-time'}
             </div>
           </div>
-          <button class="btn btn-sm btn-danger" onclick="removeMed(${m.id})">Delete</button>
+          <button class="btn btn-sm btn-danger" onclick="removeMed(${Number(m.id) || 0})">Delete</button>
         </div>
       `).join('');
     }
