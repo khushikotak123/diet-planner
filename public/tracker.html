@@ -210,15 +210,15 @@
           <div class="item-info">
             <span class="item-icon">${getMealIcon(m.mealType)}</span>
             <div>
-              <div class="item-name">${m.name}</div>
-              <div class="item-meta">${m.mealType} &bull; ${m.calories} kcal</div>
+              <div class="item-name">${UI.escapeHtml(m.name)}</div>
+              <div class="item-meta">${UI.escapeHtml(m.mealType)} &bull; ${Number(m.calories) || 0} kcal</div>
             </div>
           </div>
           <div class="item-actions">
             <span style="font-size: 12px; color: var(--text-muted); margin-right: 8px;">
-              P:${m.protein || 0}g C:${m.carbs || 0}g F:${m.fat || 0}g
+              P:${Number(m.protein) || 0}g C:${Number(m.carbs) || 0}g F:${Number(m.fat) || 0}g
             </span>
-            <button class="btn btn-sm btn-danger" onclick="deleteMeal(${m.id})">Delete</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteMeal(${Number(m.id) || 0})">Delete</button>
           </div>
         </div>
       `).join('');
@@ -262,25 +262,42 @@
         return;
       }
 
-      container.innerHTML = suggestions.map(s => `
-        <div class="list-item" style="cursor: pointer;" onclick="quickLog('${s.name.replace(/'/g, "\\'")}', ${s.calories}, ${s.protein}, ${s.carbs}, ${s.fat}, '${s.category}')">
+      /* Render suggestions with data-* attributes and event delegation
+         to avoid unsafe string interpolation into an inline onclick handler. */
+      container.innerHTML = suggestions.map((s, idx) => `
+        <div class="list-item suggestion-item" style="cursor: pointer;" data-idx="${idx}">
           <div class="item-info">
             <span class="item-icon">${getMealIcon(s.category)}</span>
             <div>
-              <div class="item-name">${s.name}</div>
-              <div class="item-meta">${s.category} &bull; ${s.calories} kcal &bull; ${s.protein}g protein</div>
+              <div class="item-name">${UI.escapeHtml(s.name)}</div>
+              <div class="item-meta">${UI.escapeHtml(s.category)} &bull; ${Number(s.calories) || 0} kcal &bull; ${Number(s.protein) || 0}g protein</div>
             </div>
           </div>
           <button class="btn btn-sm btn-primary">+ Log</button>
         </div>
       `).join('');
+
+      container.querySelectorAll('.suggestion-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = Number(el.dataset.idx);
+          const s = suggestions[idx];
+          if (s) quickLog(s);
+        });
+      });
     }
 
     /* Quick log from suggestion */
-    function quickLog(name, calories, protein, carbs, fat, category) {
-      const entry = { name, calories, protein, carbs, fat, mealType: category === 'Snack' ? 'Snack' : category };
+    function quickLog(s) {
+      const entry = {
+        name: s.name,
+        calories: s.calories,
+        protein: s.protein,
+        carbs: s.carbs,
+        fat: s.fat,
+        mealType: s.category === 'Snack' ? 'Snack' : s.category,
+      };
       Storage.saveMealEntry(entry);
-      UI.showToast(`${name} logged!`);
+      UI.showToast(`${s.name} logged!`);
       renderProgress();
       renderTodayMeals();
       renderSuggestions();

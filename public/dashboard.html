@@ -108,10 +108,11 @@
     const promptEl = document.getElementById('profilePrompt');
     const contentEl = document.getElementById('dashboardContent');
 
-    /* Personalized greeting */
+    /* Personalized greeting (textContent is safe against XSS) */
     if (profile.name) {
       document.getElementById('greeting').textContent = `Welcome back, ${profile.name}!`;
     }
+    /* Note: UI.escapeHtml is used throughout for innerHTML rendering */
 
     /* Check if profile is complete */
     if (UI.showProfilePrompt(promptEl)) {
@@ -264,12 +265,12 @@
           <div class="item-info">
             <span class="item-icon">&#127869;</span>
             <div>
-              <div class="item-name">${m.name}</div>
-              <div class="item-meta">${m.mealType || 'Meal'} &bull; ${m.calories} kcal</div>
+              <div class="item-name">${UI.escapeHtml(m.name)}</div>
+              <div class="item-meta">${UI.escapeHtml(m.mealType || 'Meal')} &bull; ${Number(m.calories) || 0} kcal</div>
             </div>
           </div>
           <div style="font-size: 13px; color: var(--text-muted);">
-            P: ${m.protein || 0}g &bull; C: ${m.carbs || 0}g &bull; F: ${m.fat || 0}g
+            P: ${Number(m.protein) || 0}g &bull; C: ${Number(m.carbs) || 0}g &bull; F: ${Number(m.fat) || 0}g
           </div>
         </div>
       `).join('');

@@ -275,7 +275,7 @@
         const json = await response.json();
 
         if (json.error) {
-          resultDiv.innerHTML = `<div class="card"><p style="color: var(--danger); text-align: center; padding: 20px;">Error: ${json.error}</p></div>`;
+          resultDiv.innerHTML = `<div class="card"><p style="color: var(--danger); text-align: center; padding: 20px;">Error: ${UI.escapeHtml(json.error)}</p></div>`;
           return;
         }
 
@@ -284,12 +284,13 @@
         /* Save diet plan for grocery list generation and tracking */
         Storage.saveDietPlan(plan);
 
-        /* Render the plan summary */
+        /* Render the plan summary (escape AI-controlled strings to prevent XSS) */
+        const totalCal = Number(plan.totalCalories) || 0;
         let html = `
           <div class="plan-summary">
             <div style="font-size: 14px; opacity: 0.8; margin-bottom: 4px;">Total Daily Calories</div>
-            <div class="total-cal">${plan.totalCalories} kcal</div>
-            <div style="font-size: 14px; opacity: 0.8; margin-top: 4px;">${plan.notes || ''}</div>
+            <div class="total-cal">${totalCal} kcal</div>
+            <div style="font-size: 14px; opacity: 0.8; margin-top: 4px;">${UI.escapeHtml(plan.notes || '')}</div>
             <div class="plan-actions">
               <button class="btn" style="background: rgba(255,255,255,0.2); color: #fff;" onclick="window.location.href='grocery.html'">&#128722; Generate Grocery List</button>
               <button class="btn" style="background: rgba(255,255,255,0.2); color: #fff;" onclick="window.location.href='tracker.html'">&#128221; Start Tracking</button>
@@ -300,11 +301,12 @@
         /* Render individual meals */
         if (plan.meals && plan.meals.length) {
           plan.meals.forEach(meal => {
+            const items = Array.isArray(meal.items) ? meal.items : [];
             html += `
               <div class="meal-card">
-                <h3>${meal.meal}</h3>
-                <div class="meal-meta">${meal.calories} kcal &bull; P: ${meal.protein || 0}g &bull; C: ${meal.carbs || 0}g &bull; F: ${meal.fat || 0}g</div>
-                <ul>${meal.items.map(item => `<li>${item}</li>`).join('')}</ul>
+                <h3>${UI.escapeHtml(meal.meal)}</h3>
+                <div class="meal-meta">${Number(meal.calories) || 0} kcal &bull; P: ${Number(meal.protein) || 0}g &bull; C: ${Number(meal.carbs) || 0}g &bull; F: ${Number(meal.fat) || 0}g</div>
+                <ul>${items.map(item => `<li>${UI.escapeHtml(item)}</li>`).join('')}</ul>
               </div>
             `;
           });
@@ -313,11 +315,12 @@
         /* Render snacks */
         if (plan.snacks && plan.snacks.length) {
           plan.snacks.forEach(snack => {
+            const items = Array.isArray(snack.items) ? snack.items : [];
             html += `
               <div class="meal-card" style="border-left-color: var(--accent);">
                 <h3>Snack</h3>
-                <div class="meal-meta">${snack.calories} kcal</div>
-                <ul>${snack.items.map(item => `<li>${item}</li>`).join('')}</ul>
+                <div class="meal-meta">${Number(snack.calories) || 0} kcal</div>
+                <ul>${items.map(item => `<li>${UI.escapeHtml(item)}</li>`).join('')}</ul>
               </div>
             `;
           });

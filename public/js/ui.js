@@ -6,6 +6,23 @@
 
 const UI = {
   /**
+   * Escape a value for safe insertion into HTML text / attributes.
+   * Defense against XSS when rendering user- or AI-controlled strings.
+   * @param {*} value
+   * @returns {string}
+   */
+  escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/`/g, '&#96;');
+  },
+
+  /**
    * Render the shared top navigation bar.
    * @param {string} activePage - Current page identifier
    */
