@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barcode Scanner - Health+</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#264653">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .scanner-area {
+      position: relative;
+      background: #000;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      max-width: 640px;
+      margin: 0 auto 24px;
+    }
+
+    .scanner-area video {
+      width: 100%;
+      display: block;
+    }
+
+    .scanner-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%;
+      height: 40%;
+      border: 3px solid var(--accent);
+      border-radius: var(--radius-md);
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
+    }
+
+    .scanner-hint {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      font-size: 13px;
+      background: rgba(0,0,0,0.6);
+      padding: 6px 16px;
+      border-radius: 20px;
+    }
+
+    .product-result {
+      animation: fadeIn 0.3s ease;
+    }
+
+    .nutrition-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .nutrition-item {
+      text-align: center;
+      padding: 12px;
+      background: var(--surface-alt);
+      border-radius: var(--radius-sm);
+    }
+
+    .nutrition-item .value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .nutrition-item .label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .manual-entry {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .recent-scans .scan-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface-alt);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .recent-scans .scan-item:hover {
+      background: var(--primary-light);
+    }
+
+    @media (max-width: 768px) {
+      .nutrition-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav" id="top-nav"></div>
+
+  <div class="page-container fade-in">
+    <div class="page-header">
+      <h1>Barcode Scanner</h1>
+      <p>Scan product barcodes to instantly get nutritional information and add to your meal log.</p>
+    </div>
+
+    <!-- Scanner Controls -->
+    <div style="text-align: center; margin-bottom: 24px;">
+      <button id="startScanBtn" class="btn btn-primary btn-lg" onclick="startScanner()">
+        &#128247; Start Camera Scanner
+      </button>
+      <button id="stopScanBtn" class="btn btn-danger btn-lg" style="display:none" onclick="stopScanner()">
+        &#9632; Stop Scanner
+      </button>
+    </div>
+
+    <!-- Camera Area -->
+    <div id="scannerArea" class="scanner-area" style="display: none;">
+      <video id="scannerVideo" autoplay playsinline></video>
+      <div class="scanner-overlay"></div>
+      <div class="scanner-hint">Position barcode within the frame</div>
+    </div>
+
+    <!-- Manual Barcode Entry -->
+    <div class="manual-entry">
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <h2>Manual Barcode Entry</h2>
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <input type="text" id="manualBarcode" class="form-control" placeholder="Enter barcode number (e.g., 5000159461122)" style="flex:1">
+          <button class="btn btn-primary" onclick="lookupBarcode(document.getElementById('manualBarcode').value)">Look Up</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Result -->
+    <div id="productResult" style="display: none; max-width: 640px; margin: 0 auto 24px;">
+      <div class="card product-result">
+        <div class="card-header">
+          <h2 id="productName">Product Name</h2>
+          <span class="badge" style="background: var(--success-light); color: var(--success);" id="productBrand">Brand</span>
+        </div>
+        <div id="productImage" style="text-align: center; margin-bottom: 16px;"></div>
+        <div class="nutrition-grid">
+          <div class="nutrition-item">
+            <div class="value" id="prodCal">--</div>
+            <div class="label">Calories</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="value" id="prodProtein">--</div>
+            <div class="label">Protein (g)</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="value" id="prodCarbs">--</div>
+            <div class="label">Carbs (g)</div>
+          </div>
+          <div class="nutrition-item">
+            <div class="value" id="prodFat">--</div>
+            <div class="label">Fat (g)</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <button class="btn btn-primary btn-block" onclick="addScannedToTracker()">Add to Meal Log</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('productResult').style.display='none'">Dismiss</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Scans -->
+    <div class="manual-entry">
+      <div class="card recent-scans">
+        <div class="card-header">
+          <h2>Recent Scans</h2>
+          <button class="btn btn-sm btn-secondary" onclick="clearRecentScans()">Clear</button>
+        </div>
+        <div id="recentScansList"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">&copy; 2025 Health+ Platform | All Rights Reserved</footer>
+
+  <!-- QuaggaJS for barcode scanning -->
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/calories.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ai-learning.js"></script>
+  <script>
+    UI.renderNav('scanner');
+
+    let currentProduct = null;
+    const SCAN_KEY = 'dp_recent_scans';
+
+    function getRecentScans() {
+      try { return JSON.parse(localStorage.getItem(SCAN_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveRecentScan(product) {
+      const scans = getRecentScans();
+      scans.unshift({ ...product, scannedAt: new Date().toISOString() });
+      if (scans.length > 20) scans.length = 20;
+      localStorage.setItem(SCAN_KEY, JSON.stringify(scans));
+      renderRecentScans();
+    }
+
+    function clearRecentScans() {
+      localStorage.removeItem(SCAN_KEY);
+      renderRecentScans();
+    }
+
+    function renderRecentScans() {
+      const scans = getRecentScans();
+      const el = document.getElementById('recentScansList');
+      if (!scans.length) {
+        el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128269;</div><p>No recent scans</p></div>';
+        return;
+      }
+      el.innerHTML = scans.map(s => `
+        <div class="scan-item" onclick="showProduct(${JSON.stringify(s).replace(/"/g, '&quot;')})">
+          <div>
+            <strong style="font-size: 14px;">${s.name || 'Unknown Product'}</strong>
+            <div style="font-size: 12px; color: var(--text-muted);">${s.brand || ''} &bull; ${s.calories || 0} kcal</div>
+          </div>
+          <span style="font-size: 12px; color: var(--text-muted);">${new Date(s.scannedAt).toLocaleDateString()}</span>
+        </div>
+      `).join('');
+    }
+
+    async function startScanner() {
+      const area = document.getElementById('scannerArea');
+      const video = document.getElementById('scannerVideo');
+      area.style.display = 'block';
+      document.getElementById('startScanBtn').style.display = 'none';
+      document.getElementById('stopScanBtn').style.display = 'inline-flex';
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        video.srcObject = stream;
+
+        /* Initialize QuaggaJS */
+        if (typeof Quagga !== 'undefined') {
+          Quagga.init({
+            inputStream: {
+              type: 'LiveStream',
+              target: area,
+              constraints: { facingMode: 'environment' },
+            },
+            decoder: {
+              readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader'],
+            },
+            locate: true,
+          }, (err) => {
+            if (err) {
+              console.error('Quagga init error:', err);
+              /* Fall back to manual entry */
+              UI.showToast('Camera scanner unavailable. Use manual entry.', 'warning');
+              return;
+            }
+            Quagga.start();
+          });
+
+          Quagga.onDetected((result) => {
+            const code = result.codeResult.code;
+            if (code) {
+              UI.showToast(`Barcode detected: ${code}`);
+              Quagga.stop();
+              stopScanner();
+              lookupBarcode(code);
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Camera error:', err);
+        UI.showToast('Camera access denied. Use manual barcode entry.', 'error');
+        stopScanner();
+      }
+    }
+
+    function stopScanner() {
+      const video = document.getElementById('scannerVideo');
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(t => t.stop());
+        video.srcObject = null;
+      }
+      if (typeof Quagga !== 'undefined') {
+        try { Quagga.stop(); } catch {}
+      }
+      document.getElementById('scannerArea').style.display = 'none';
+      document.getElementById('startScanBtn').style.display = 'inline-flex';
+      document.getElementById('stopScanBtn').style.display = 'none';
+    }
+
+    async function lookupBarcode(barcode) {
+      if (!barcode || !barcode.trim()) {
+        UI.showToast('Please enter a barcode number', 'warning');
+        return;
+      }
+
+      barcode = barcode.trim();
+      UI.showToast('Looking up product...', 'success', 2000);
+
+      try {
+        const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+        const data = await res.json();
+
+        if (data.status === 1 && data.product) {
+          const p = data.product;
+          const nutrients = p.nutriments || {};
+          const product = {
+            barcode: barcode,
+            name: p.product_name || 'Unknown Product',
+            brand: p.brands || '',
+            calories: Math.round(nutrients['energy-kcal_100g'] || nutrients['energy-kcal'] || 0),
+            protein: Math.round(nutrients.proteins_100g || 0),
+            carbs: Math.round(nutrients.carbohydrates_100g || 0),
+            fat: Math.round(nutrients.fat_100g || 0),
+            image: p.image_front_small_url || '',
+            servingSize: p.serving_size || '100g',
+          };
+          showProduct(product);
+          saveRecentScan(product);
+        } else {
+          UI.showToast('Product not found in database. Try a different barcode.', 'warning');
+        }
+      } catch (err) {
+        console.error('Lookup error:', err);
+        UI.showToast('Failed to look up product. Check your connection.', 'error');
+      }
+    }
+
+    function showProduct(product) {
+      currentProduct = product;
+      document.getElementById('productName').textContent = product.name;
+      document.getElementById('productBrand').textContent = product.brand || 'Unknown Brand';
+      document.getElementById('prodCal').textContent = product.calories || 0;
+      document.getElementById('prodProtein').textContent = product.protein || 0;
+      document.getElementById('prodCarbs').textContent = product.carbs || 0;
+      document.getElementById('prodFat').textContent = product.fat || 0;
+
+      const imgEl = document.getElementById('productImage');
+      if (product.image) {
+        imgEl.innerHTML = `<img src="${product.image}" alt="${product.name}" style="max-height: 150px; border-radius: var(--radius-sm);">`;
+      } else {
+        imgEl.innerHTML = '';
+      }
+
+      document.getElementById('productResult').style.display = 'block';
+      document.getElementById('productResult').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function addScannedToTracker() {
+      if (!currentProduct) return;
+
+      Storage.saveMealEntry({
+        name: currentProduct.name,
+        calories: currentProduct.calories || 0,
+        protein: currentProduct.protein || 0,
+        carbs: currentProduct.carbs || 0,
+        fat: currentProduct.fat || 0,
+        category: 'Scanned',
+        source: 'barcode',
+      });
+
+      AILearning.trackFood(currentProduct.name);
+      UI.showToast(`${currentProduct.name} added to meal log!`);
+      document.getElementById('productResult').style.display = 'none';
+    }
+
+    renderRecentScans();
+  </script>
+</body>
+</html>

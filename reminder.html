@@ -146,12 +146,14 @@
   </footer>
 
   <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/ui.js"></script>
   <script>
     UI.renderNav('reminder');
 
     /* --- Medication Reminder Logic (preserved from original) --- */
-    const BACKEND_URL = "http://localhost:5000/send-sms";
+    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : '';
+    const BACKEND_URL = API_BASE + "/api/send-sms";
     const KEY = "meds_sms_v1";
     const PHONE_KEY = "user_phone";
     let meds = [];

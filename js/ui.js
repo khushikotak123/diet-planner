@@ -18,6 +18,10 @@ const UI = {
       { id: 'dashboard', label: 'Dashboard', href: 'dashboard.html' },
       { id: 'diet', label: 'Diet Plan', href: 'diet.html' },
       { id: 'tracker', label: 'Tracker', href: 'tracker.html' },
+      { id: 'scanner', label: 'Scanner', href: 'scanner.html' },
+      { id: 'photo', label: 'Photo Log', href: 'photo-log.html' },
+      { id: 'coach', label: 'Coach', href: 'coach.html' },
+      { id: 'analytics', label: 'Analytics', href: 'analytics.html' },
       { id: 'grocery', label: 'Grocery', href: 'grocery.html' },
       { id: 'profile', label: 'Profile', href: 'profile.html' },
       { id: 'reminder', label: 'Reminders', href: 'reminder.html' },
@@ -25,6 +29,7 @@ const UI = {
 
     nav.innerHTML = `
       <a href="index.html" class="logo">Health<span>+</span></a>
+      ${Auth && Auth.isLoggedIn() ? '<span style="color: rgba(255,255,255,0.7); font-size: 13px; margin-left: 8px;">' + Auth.getCurrentUser().name + '</span>' : ''}
       <button class="mobile-toggle" onclick="UI.toggleMobileNav()" aria-label="Toggle menu">&#9776;</button>
       <nav id="nav-links">
         ${links.map(l => `<a href="${l.href}" class="${l.id === activePage ? 'active' : ''}">${l.label}</a>`).join('')}

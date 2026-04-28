@@ -2,6 +2,8 @@
    Health+ Platform - Express Backend Server
    Handles: AI Diet Plan generation (Gemini API)
             SMS Medication Reminders (Twilio)
+            Meal Photo Analysis (Gemini Vision)
+            Conversational Diet Coach (Gemini)
             Static file serving
    ============================================ */
 
@@ -22,14 +24,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 /* Serve static frontend files */
 app.use(express.static(__dirname));
 
 /* --- Gemini API Configuration --- */
-const API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=" +
+const GEMINI_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
   process.env.GEMINI_API_KEY;
 
 /**
@@ -37,7 +39,7 @@ const API_URL =
  * Generate a personalized diet plan using the Gemini AI.
  * Now accepts dynamic calorie targets from the frontend's BMR/TDEE calculator.
  */
-app.post("/diet", async (req, res) => {
+app.post("/api/diet", async (req, res) => {
   try {
     const {
       age, gender, height, weight, goal, dietType, allergies,
@@ -75,18 +77,16 @@ The structure must be:
 }
 `;
 
-    const response = await fetch(API_URL, {
+    const response = await fetch(GEMINI_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
     });
 
     const data = await response.json();
-    console.log("Gemini raw response:", JSON.stringify(data, null, 2));
-
     let dietPlan = {};
     if (data.candidates?.length > 0) {
-      const text = data.candidates[0].content?.parts?.[0]?.text || data.candidates[0].output_text;
+      const text = data.candidates[0].content?.parts?.[0]?.text || "";
       if (text) {
         const cleaned = text.replace(/```json|```/g, "").trim();
         dietPlan = JSON.parse(cleaned);
@@ -113,7 +113,7 @@ if (!client) {
  * POST /send-sms
  * Send an SMS medication reminder via Twilio.
  */
-app.post("/send-sms", async (req, res) => {
+app.post("/api/send-sms", async (req, res) => {
   try {
     if (!client) {
       return res.status(503).json({ error: "Twilio is not configured. Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN in .env" });
@@ -135,6 +135,137 @@ app.post("/send-sms", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to send SMS" });
+  }
+});
+
+/**
+ * POST /api/analyze-photo
+ * Analyze a meal photo using Gemini Vision API.
+ */
+app.post("/api/analyze-photo", async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image) return res.status(400).json({ error: "No image provided" });
+
+    const prompt = `You are a nutrition analysis AI. Analyze this food image and identify all visible food items.
+For each food item, estimate the nutritional information.
+
+IMPORTANT: Return ONLY valid JSON, no markdown, no explanation.
+Structure:
+{
+  "foods": [
+    { "name": "Food item name", "portion": "estimated portion size", "calories": number, "protein": number, "carbs": number, "fat": number }
+  ],
+  "totalCalories": number,
+  "totalProtein": number,
+  "totalCarbs": number,
+  "totalFat": number,
+  "confidence": "high/medium/low",
+  "description": "Brief description of the meal"
+}`;
+
+    const matches = image.match(/^data:(image\/\w+);base64,(.+)$/);
+    let inlineData, mimeType;
+    if (matches) {
+      mimeType = matches[1];
+      inlineData = matches[2];
+    } else {
+      mimeType = "image/jpeg";
+      inlineData = image;
+    }
+
+    const response = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inline_data: { mime_type: mimeType, data: inlineData } }
+          ]
+        }]
+      }),
+    });
+
+    const data = await response.json();
+    let result = {};
+    if (data.candidates?.length > 0) {
+      const text = data.candidates[0].content?.parts?.[0]?.text || "";
+      if (text) {
+        const cleaned = text.replace(/```json|```/g, "").trim();
+        result = JSON.parse(cleaned);
+      }
+    }
+
+    res.json({ analysis: result });
+  } catch (err) {
+    console.error("Photo analysis error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/chat
+ * Conversational Diet Coach via Gemini.
+ */
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message, history, profile } = req.body;
+    if (!message) return res.status(400).json({ error: "No message provided" });
+
+    const profileContext = profile
+      ? `User profile: Age ${profile.age}, Gender ${profile.gender}, Height ${profile.height}cm, Weight ${profile.weight}kg, Goal: ${profile.goal}, Activity: ${profile.activityLevel}, Diet: ${profile.dietType}.`
+      : "No user profile available.";
+
+    const systemPrompt = `You are Health+ Diet Coach, a friendly and knowledgeable AI nutrition assistant.
+You help users with:
+- Nutrition questions and advice
+- Recipe suggestions based on dietary preferences
+- Meal planning tips
+- Understanding macronutrients and micronutrients
+- Healthy eating habits and lifestyle tips
+- Calorie counting guidance
+
+${profileContext}
+
+Keep responses concise but informative. Use bullet points for lists.
+Be encouraging and supportive. If asked about medical conditions, advise consulting a healthcare professional.
+Format your response in plain text with line breaks for readability.`;
+
+    const conversationParts = [];
+    conversationParts.push({ text: systemPrompt });
+
+    if (history && history.length > 0) {
+      const recent = history.slice(-10);
+      recent.forEach(msg => {
+        conversationParts.push({ text: `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}` });
+      });
+    }
+
+    conversationParts.push({ text: `User: ${message}` });
+
+    const response = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: conversationParts }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        }
+      }),
+    });
+
+    const data = await response.json();
+    let reply = "Sorry, I could not generate a response. Please try again.";
+    if (data.candidates?.length > 0) {
+      reply = data.candidates[0].content?.parts?.[0]?.text || reply;
+    }
+
+    res.json({ reply });
+  } catch (err) {
+    console.error("Chat API error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
