@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Health+ | Your Personal Health & Wellbeing Platform</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#264653">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="css/common.css">
   <style>
     /* Hero Section */
@@ -180,6 +184,41 @@
         <p>Track medications and get timely SMS reminders to never miss a dose.</p>
         <span class="card-link">Set Reminders &rarr;</span>
       </a>
+
+      <a href="scanner.html" class="feature-card">
+        <div class="icon">&#128247;</div>
+        <h3>Barcode Scanner</h3>
+        <p>Scan product barcodes to instantly get nutritional info and add to your meal log.</p>
+        <span class="card-link">Scan Now &rarr;</span>
+      </a>
+
+      <a href="photo-log.html" class="feature-card">
+        <div class="icon">&#128248;</div>
+        <h3>Meal Photo Log</h3>
+        <p>Take a photo of your meal and let AI identify foods and estimate calories automatically.</p>
+        <span class="card-link">Try Photo Log &rarr;</span>
+      </a>
+
+      <a href="coach.html" class="feature-card">
+        <div class="icon">&#129504;</div>
+        <h3>AI Diet Coach</h3>
+        <p>Chat with your personal nutrition assistant for recipes, advice, and meal planning tips.</p>
+        <span class="card-link">Chat Now &rarr;</span>
+      </a>
+
+      <a href="analytics.html" class="feature-card">
+        <div class="icon">&#128200;</div>
+        <h3>Predictive Analytics</h3>
+        <p>AI-powered insights into your nutritional patterns, trend detection, and deficiency alerts.</p>
+        <span class="card-link">View Analytics &rarr;</span>
+      </a>
+
+      <a href="auth.html" class="feature-card">
+        <div class="icon">&#128274;</div>
+        <h3>User Authentication</h3>
+        <p>Secure your data with login/register. Supports email, Google, and GitHub sign-in.</p>
+        <span class="card-link">Sign In &rarr;</span>
+      </a>
     </div>
   </section>
 
@@ -188,9 +227,17 @@
   </footer>
 
   <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/ui.js"></script>
   <script>
     UI.renderNav('home');
+
+    /* Register PWA Service Worker */
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.log('SW registration failed:', err));
+    }
   </script>
 </body>
 </html>

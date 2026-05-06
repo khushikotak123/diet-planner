@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Photo Log - Health+</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#264653">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/common.css">
+  <style>
+    .upload-zone {
+      border: 3px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--surface-alt);
+      max-width: 640px;
+      margin: 0 auto 24px;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .upload-zone .icon { font-size: 48px; margin-bottom: 12px; }
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: var(--radius-md);
+      margin: 16px auto;
+      display: block;
+      box-shadow: var(--shadow-md);
+    }
+
+    .analysis-card {
+      max-width: 640px;
+      margin: 0 auto 24px;
+    }
+
+    .food-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface-alt);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+    }
+
+    .food-item-row .food-name {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .food-item-row .food-portion {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .food-item-row .food-cal {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .confidence-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .confidence-badge.high { background: var(--success-light); color: var(--success); }
+    .confidence-badge.medium { background: var(--warning-light); color: var(--warning); }
+    .confidence-badge.low { background: var(--danger-light); color: var(--danger); }
+
+    .photo-history {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .photo-history-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      background: var(--surface-alt);
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    .photo-history-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+    }
+
+    .loading-spinner {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading-spinner .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="top-nav" id="top-nav"></div>
+
+  <div class="page-container fade-in">
+    <div class="page-header">
+      <h1>Meal Photo Log</h1>
+      <p>Take a photo of your meal and let AI identify the foods and estimate calories automatically.</p>
+    </div>
+
+    <!-- Upload Zone -->
+    <div id="uploadZone" class="upload-zone" onclick="document.getElementById('photoInput').click()">
+      <div class="icon">&#128248;</div>
+      <p style="font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px;">
+        Take a Photo or Upload an Image
+      </p>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        Click here or drag & drop a meal photo. We'll analyze it with AI.
+      </p>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhoto(this)">
+    </div>
+
+    <!-- Image Preview -->
+    <div id="previewArea" style="display: none; text-align: center; max-width: 640px; margin: 0 auto 24px;">
+      <img id="previewImg" class="preview-img" alt="Meal photo preview">
+      <div style="margin-top: 12px;">
+        <button class="btn btn-primary btn-lg" onclick="analyzePhoto()">&#129504; Analyze with AI</button>
+        <button class="btn btn-secondary" onclick="clearPhoto()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingArea" style="display: none;">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p style="color: var(--text-secondary);">Analyzing your meal photo with AI...</p>
+      </div>
+    </div>
+
+    <!-- Analysis Result -->
+    <div id="analysisResult" style="display: none;" class="analysis-card">
+      <div class="card">
+        <div class="card-header">
+          <h2>&#127869; Analysis Result</h2>
+          <span id="confidenceBadge" class="confidence-badge">--</span>
+        </div>
+        <p id="mealDescription" style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;"></p>
+
+        <div id="foodsList"></div>
+
+        <div style="display: flex; gap: 16px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap;">
+          <div style="flex:1; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="totalCal">--</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Total Calories</div>
+          </div>
+          <div style="flex:1; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="totalProt">--</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Protein (g)</div>
+          </div>
+          <div style="flex:1; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="totalCarb">--</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Carbs (g)</div>
+          </div>
+          <div style="flex:1; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="totalFatVal">--</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Fat (g)</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+          <button class="btn btn-primary btn-block" onclick="addAnalysisToTracker()">Add All to Meal Log</button>
+          <button class="btn btn-secondary" onclick="clearPhoto()">New Photo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photo History -->
+    <div class="photo-history">
+      <div class="card">
+        <div class="card-header">
+          <h2>Photo History</h2>
+          <button class="btn btn-sm btn-secondary" onclick="clearPhotoHistory()">Clear</button>
+        </div>
+        <div id="photoHistoryList"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">&copy; 2025 Health+ Platform | All Rights Reserved</footer>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calories.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ai-learning.js"></script>
+  <script>
+    UI.renderNav('photo');
+
+    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : '';
+    const PHOTO_HISTORY_KEY = 'dp_photo_history';
+    let currentImageData = null;
+    let currentAnalysis = null;
+
+    /* Drag and drop */
+    const zone = document.getElementById('uploadZone');
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handlePhotoFile(e.dataTransfer.files[0]);
+    });
+
+    function handlePhoto(input) {
+      if (input.files && input.files[0]) handlePhotoFile(input.files[0]);
+    }
+
+    function handlePhotoFile(file) {
+      if (!file.type.startsWith('image/')) {
+        UI.showToast('Please select an image file', 'warning');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentImageData = e.target.result;
+        document.getElementById('previewImg').src = currentImageData;
+        document.getElementById('previewArea').style.display = 'block';
+        document.getElementById('uploadZone').style.display = 'none';
+        document.getElementById('analysisResult').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function analyzePhoto() {
+      if (!currentImageData) return;
+
+      document.getElementById('previewArea').style.display = 'none';
+      document.getElementById('loadingArea').style.display = 'block';
+
+      try {
+        const res = await fetch(API_BASE + '/api/analyze-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: currentImageData }),
+        });
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        currentAnalysis = data.analysis;
+        displayAnalysis(data.analysis);
+        saveToPhotoHistory(data.analysis);
+      } catch (err) {
+        console.error('Analysis error:', err);
+        UI.showToast('Failed to analyze photo. Ensure the API key is configured.', 'error');
+        document.getElementById('previewArea').style.display = 'block';
+      } finally {
+        document.getElementById('loadingArea').style.display = 'none';
+      }
+    }
+
+    function displayAnalysis(analysis) {
+      document.getElementById('mealDescription').textContent = analysis.description || 'Meal analysis complete';
+
+      const badge = document.getElementById('confidenceBadge');
+      const conf = (analysis.confidence || 'medium').toLowerCase();
+      badge.textContent = conf.charAt(0).toUpperCase() + conf.slice(1) + ' confidence';
+      badge.className = 'confidence-badge ' + conf;
+
+      /* Render food items */
+      const foodsEl = document.getElementById('foodsList');
+      if (analysis.foods && analysis.foods.length) {
+        foodsEl.innerHTML = analysis.foods.map(f => `
+          <div class="food-item-row">
+            <div>
+              <div class="food-name">${f.name}</div>
+              <div class="food-portion">${f.portion || ''}</div>
+            </div>
+            <div class="food-cal">${f.calories || 0} kcal</div>
+          </div>
+        `).join('');
+      } else {
+        foodsEl.innerHTML = '<p style="color: var(--text-muted);">No foods identified</p>';
+      }
+
+      document.getElementById('totalCal').textContent = analysis.totalCalories || 0;
+      document.getElementById('totalProt').textContent = analysis.totalProtein || 0;
+      document.getElementById('totalCarb').textContent = analysis.totalCarbs || 0;
+      document.getElementById('totalFatVal').textContent = analysis.totalFat || 0;
+
+      document.getElementById('analysisResult').style.display = 'block';
+      document.getElementById('analysisResult').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function addAnalysisToTracker() {
+      if (!currentAnalysis || !currentAnalysis.foods) return;
+
+      currentAnalysis.foods.forEach(food => {
+        Storage.saveMealEntry({
+          name: food.name,
+          calories: food.calories || 0,
+          protein: food.protein || 0,
+          carbs: food.carbs || 0,
+          fat: food.fat || 0,
+          category: 'Photo',
+          source: 'photo-ai',
+        });
+        AILearning.trackFood(food.name);
+      });
+
+      UI.showToast(`${currentAnalysis.foods.length} items added to meal log!`);
+    }
+
+    function clearPhoto() {
+      currentImageData = null;
+      currentAnalysis = null;
+      document.getElementById('photoInput').value = '';
+      document.getElementById('previewArea').style.display = 'none';
+      document.getElementById('analysisResult').style.display = 'none';
+      document.getElementById('loadingArea').style.display = 'none';
+      document.getElementById('uploadZone').style.display = 'block';
+    }
+
+    function saveToPhotoHistory(analysis) {
+      const history = JSON.parse(localStorage.getItem(PHOTO_HISTORY_KEY) || '[]');
+      history.unshift({
+        description: analysis.description,
+        totalCalories: analysis.totalCalories,
+        foodCount: analysis.foods?.length || 0,
+        timestamp: new Date().toISOString(),
+      });
+      if (history.length > 20) history.length = 20;
+      localStorage.setItem(PHOTO_HISTORY_KEY, JSON.stringify(history));
+      renderPhotoHistory();
+    }
+
+    function clearPhotoHistory() {
+      localStorage.removeItem(PHOTO_HISTORY_KEY);
+      renderPhotoHistory();
+    }
+
+    function renderPhotoHistory() {
+      const history = JSON.parse(localStorage.getItem(PHOTO_HISTORY_KEY) || '[]');
+      const el = document.getElementById('photoHistoryList');
+      if (!history.length) {
+        el.innerHTML = '<div class="empty-state"><div class="empty-icon">&#128247;</div><p>No photos analyzed yet</p></div>';
+        return;
+      }
+      el.innerHTML = history.map(h => `
+        <div class="photo-history-item">
+          <div style="width: 60px; height: 60px; background: var(--primary-light); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 24px;">&#127869;</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 500; font-size: 14px;">${h.description || 'Meal analysis'}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">${h.foodCount} items &bull; ${h.totalCalories} kcal &bull; ${new Date(h.timestamp).toLocaleString()}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    renderPhotoHistory();
+  </script>
+</body>
+</html>

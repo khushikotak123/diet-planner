@@ -1,0 +1,42 @@
+{
+  "name": "Health+ Diet Planner",
+  "short_name": "Health+",
+  "description": "Your personal health & nutrition platform with AI-powered diet plans, meal tracking, and smart analytics.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#264653",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "fitness", "food"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard.html",
+      "description": "View your health dashboard"
+    },
+    {
+      "name": "Log Meal",
+      "url": "/tracker.html",
+      "description": "Log a meal"
+    },
+    {
+      "name": "Diet Coach",
+      "url": "/coach.html",
+      "description": "Chat with your AI diet coach"
+    }
+  ]
+}

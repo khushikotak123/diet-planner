@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/diet", "destination": "/api/diet.js" },
+    { "source": "/api/send-sms", "destination": "/api/send-sms.js" },
+    { "source": "/api/analyze-photo", "destination": "/api/analyze-photo.js" },
+    { "source": "/api/chat", "destination": "/api/chat.js" }
+  ]
+}

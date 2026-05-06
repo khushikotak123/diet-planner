@@ -79,8 +79,8 @@ const Storage = {
     entry.id = Date.now() + Math.floor(Math.random() * 1000);
     entry.timestamp = new Date().toISOString();
     allLogs[today].push(entry);
-    /* Keep only last 7 days */
-    this._pruneOldEntries(allLogs, 7);
+    /* Keep last 30 days for analytics */
+    this._pruneOldEntries(allLogs, 30);
     return this.save(this.KEYS.MEAL_LOG, allLogs);
   },
 
