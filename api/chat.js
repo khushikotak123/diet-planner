@@ -1,4 +1,4 @@
-// api/chat.js — Vercel Serverless Function (FIXED)
+// api/diet.js — Groq Version
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,86 +8,127 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY is not set in Vercel environment variables' });
+  const GROQ_API_KEY = process.env.GROQ_API_KEY;
+  if (!GROQ_API_KEY) {
+    return res.status(500).json({ error: 'GROQ_API_KEY is not set in Vercel environment variables' });
   }
 
-  const { message, history = [], profile } = req.body;
-  if (!message) return res.status(400).json({ error: 'Message is required' });
+  const { age, gender, height, weight, activityLevel, goal, dietType, allergies, targetCalories, macros } = req.body;
 
-  let systemInstruction =
-    'You are Health+, a friendly AI diet coach. Provide personalized nutrition advice, ' +
-    'meal planning, recipe suggestions, calorie guidance, and healthy eating tips. ' +
-    'Keep responses concise, practical and encouraging.';
-
-  if (profile && profile.age) {
-    systemInstruction += ` User profile: age ${profile.age}, weight ${profile.weight || '?'}kg, ` +
-      `height ${profile.height || '?'}cm, goal: ${profile.goal || 'general health'}.`;
+  if (!age || !gender || !height || !weight || !goal || !dietType) {
+    return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const contents = [];
-  const recentHistory = Array.isArray(history) ? history.slice(-10) : [];
-  for (const turn of recentHistory) {
-    if (!turn.content) continue;
-    contents.push({
-      role: turn.role === 'user' ? 'user' : 'model',
-      parts: [{ text: turn.content }],
+  const prompt = `You are a professional nutritionist. Create a detailed daily meal plan.
+
+User details:
+- Age: ${age}, Gender: ${gender}
+- Height: ${height}cm, Weight: ${weight}kg
+- Activity Level: ${activityLevel || 'moderate'}
+- Goal: ${goal}
+- Diet Type: ${dietType}
+- Allergies/Restrictions: ${allergies || 'none'}
+- Target Calories: ${targetCalories || 'auto-calculate'} kcal/day
+- Target Macros: Protein ${macros?.protein || '?'}g, Carbs ${macros?.carbs || '?'}g, Fat ${macros?.fat || '?'}g
+
+IMPORTANT: Respond with ONLY a valid JSON object. No markdown, no code fences, no extra text before or after.
+The JSON must follow this exact structure:
+{
+  "totalCalories": 1800,
+  "notes": "Brief note about the plan",
+  "meals": [
+    {
+      "meal": "Breakfast",
+      "calories": 400,
+      "protein": 20,
+      "carbs": 50,
+      "fat": 10,
+      "items": ["Oats with banana - 1 cup", "Low fat milk - 200ml", "Almonds - 10 pieces"]
+    },
+    {
+      "meal": "Lunch",
+      "calories": 600,
+      "protein": 35,
+      "carbs": 70,
+      "fat": 15,
+      "items": ["Brown rice - 1 cup", "Dal - 1 bowl", "Mixed vegetable curry - 1 bowl", "Curd - 100g"]
+    },
+    {
+      "meal": "Dinner",
+      "calories": 500,
+      "protein": 30,
+      "carbs": 55,
+      "fat": 12,
+      "items": ["Roti - 2 pieces", "Paneer sabzi - 150g", "Green salad - 1 bowl"]
+    }
+  ],
+  "snacks": [
+    {
+      "calories": 150,
+      "items": ["Apple - 1 medium", "Peanut butter - 1 tbsp"]
+    }
+  ]
+}`;
+
+  try {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a professional nutritionist. Always respond with valid JSON only. No markdown, no explanation, no code fences.'
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.4,
+        max_tokens: 2000,
+      }),
     });
-  }
-  contents.push({ role: 'user', parts: [{ text: message }] });
 
-  const MODELS_TO_TRY = [
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-latest',
-    'gemini-1.5-pro',
-  ];
+    const data = await groqRes.json();
 
-  const requestBody = JSON.stringify({
-    system_instruction: { parts: [{ text: systemInstruction }] },
-    contents,
-    generationConfig: { temperature: 0.7, maxOutputTokens: 800 },
-  });
+    if (!groqRes.ok) {
+      console.error('Groq error:', data);
+      return res.status(502).json({ error: 'Groq API error', details: data?.error?.message });
+    }
 
-  let lastError = null;
+    let aiText = data?.choices?.[0]?.message?.content;
+    if (!aiText) {
+      return res.status(502).json({ error: 'No response from Groq' });
+    }
 
-  for (const model of MODELS_TO_TRY) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-    let geminiRes;
+    // Strip markdown fences just in case
+    aiText = aiText.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+
+    let plan;
     try {
-      geminiRes = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: requestBody,
-      });
-    } catch (networkErr) {
-      lastError = `Network error: ${networkErr.message}`;
-      continue;
+      plan = JSON.parse(aiText);
+    } catch (e) {
+      console.error('JSON parse failed:', aiText.substring(0, 300));
+      return res.status(502).json({ error: 'Failed to parse diet plan response' });
     }
 
-    const responseText = await geminiRes.text();
-    if (!geminiRes.ok) {
-      lastError = `Model ${model} failed (HTTP ${geminiRes.status}): ${responseText}`;
-      console.error(lastError);
-      continue;
+    if (!plan.meals || !Array.isArray(plan.meals)) {
+      return res.status(502).json({ error: 'Invalid diet plan structure' });
     }
 
-    let data;
-    try { data = JSON.parse(responseText); } catch {
-      lastError = `Non-JSON response from ${model}`;
-      continue;
+    // Calculate totalCalories if missing
+    if (!plan.totalCalories) {
+      plan.totalCalories =
+        plan.meals.reduce((sum, m) => sum + (m.calories || 0), 0) +
+        (plan.snacks || []).reduce((sum, s) => sum + (s.calories || 0), 0);
     }
 
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!reply) {
-      lastError = `Empty reply from ${model}: ${responseText}`;
-      continue;
-    }
+    return res.status(200).json({ plan });
 
-    return res.status(200).json({ reply });
+  } catch (err) {
+    console.error('Network error:', err);
+    return res.status(502).json({ error: 'Failed to reach Groq API' });
   }
-
-  console.error('All models failed:', lastError);
-  return res.status(502).json({ error: 'AI service unavailable. Check Vercel logs.', details: lastError });
 }
