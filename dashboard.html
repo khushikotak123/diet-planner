@@ -4,277 +4,182 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Health+</title>
-  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/sidebar.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div class="top-nav" id="top-nav"></div>
+
+<div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo"><span>Health<em>+</em></span></div>
+  <nav class="sb-nav">
+    <div class="nav-sec">Main</div>
+    <a class="nav-item" href="index.html"><span class="ic">🏠</span>Home</a>
+    <a class="nav-item active" href="dashboard.html"><span class="ic">📊</span>Dashboard</a>
+    <div class="nav-sec">Nutrition</div>
+    <a class="nav-item" href="diet.html"><span class="ic">🥗</span>Diet Plan</a>
+    <a class="nav-item" href="tracker.html"><span class="ic">📝</span>Tracker</a>
+    <a class="nav-item" href="grocery.html"><span class="ic">🛒</span>Grocery</a>
+    <div class="nav-sec">Tools</div>
+    <a class="nav-item" href="coach.html"><span class="ic">🧠</span>AI Coach</a>
+    <a class="nav-item" href="scanner.html"><span class="ic">📷</span>Scanner</a>
+    <a class="nav-item" href="photo-log.html"><span class="ic">🖼️</span>Photo Log</a>
+    <a class="nav-item" href="analytics.html"><span class="ic">📈</span>Analytics</a>
+    <div class="nav-sec">Account</div>
+    <a class="nav-item" href="profile.html"><span class="ic">👤</span>Profile</a>
+    <a class="nav-item" href="reminder.html"><span class="ic">🔔</span>Reminders</a>
+  </nav>
+  <div class="sb-foot">
+    <div class="u-chip">
+      <div class="u-av" id="sbAv">U</div>
+      <div><div class="u-name" id="sbName">User</div><div class="u-role">Member</div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main-wrap">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSB()">☰</button>
+      <div><div class="topbar-title" id="greeting">Dashboard</div><div class="topbar-sub">Your daily health overview</div></div>
+    </div>
+    <a href="profile.html" class="btn btn-secondary btn-sm">⚙️ Profile</a>
+  </div>
 
   <div class="page-container fade-in">
-    <div class="page-header">
-      <h1 id="greeting">Dashboard</h1>
-      <p>Your daily health overview at a glance.</p>
-    </div>
-
-    <!-- Profile prompt (shown if profile incomplete) -->
     <div id="profilePrompt"></div>
-
-    <!-- Main dashboard content (hidden if profile incomplete) -->
     <div id="dashboardContent">
-      <!-- Stat Cards Row -->
-      <div class="stats-grid" id="statsGrid">
-        <!-- Filled by JS -->
-      </div>
-
-      <!-- Charts Row -->
-      <div class="grid-2" style="margin-bottom: 32px;">
-        <!-- Weekly Calorie Trend -->
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="grid-2" style="margin-bottom:24px">
         <div class="card">
-          <div class="card-header">
-            <h2>Weekly Calorie Trend</h2>
-          </div>
+          <div class="card-header"><h2>Weekly Calorie Trend</h2></div>
           <canvas id="calorieChart" height="200"></canvas>
         </div>
-
-        <!-- Macros Breakdown (today) -->
         <div class="card">
-          <div class="card-header">
-            <h2>Today's Macros</h2>
-          </div>
+          <div class="card-header"><h2>Today's Macros</h2></div>
           <canvas id="macroChart" height="200"></canvas>
         </div>
       </div>
-
-      <!-- Quick Actions + Water Tracker Row -->
       <div class="grid-2">
-        <!-- Quick Actions -->
         <div class="card">
-          <div class="card-header">
-            <h2>Quick Actions</h2>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <a href="diet.html" class="btn btn-primary btn-block" style="text-align: center;">&#127823; Get Diet Plan</a>
-            <a href="tracker.html" class="btn btn-accent btn-block" style="text-align: center;">&#128221; Log Meal</a>
-            <a href="grocery.html" class="btn btn-secondary btn-block" style="text-align: center;">&#128722; Grocery List</a>
-            <a href="profile.html" class="btn btn-secondary btn-block" style="text-align: center;">&#9881; Edit Profile</a>
+          <div class="card-header"><h2>Quick Actions</h2></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <a href="diet.html" class="btn btn-primary btn-block" style="text-align:center">🥗 Diet Plan</a>
+            <a href="tracker.html" class="btn btn-accent btn-block" style="text-align:center">📝 Log Meal</a>
+            <a href="grocery.html" class="btn btn-secondary btn-block" style="text-align:center">🛒 Grocery</a>
+            <a href="profile.html" class="btn btn-secondary btn-block" style="text-align:center">⚙️ Profile</a>
           </div>
         </div>
-
-        <!-- Water Intake -->
         <div class="card">
           <div class="card-header">
             <h2>Water Intake</h2>
-            <span id="waterCount" style="font-size: 14px; color: var(--text-secondary);">0 / 8 glasses</span>
+            <span id="waterCount" style="font-size:13px;color:var(--muted)">0 / 8 glasses</span>
           </div>
-          <div class="progress-bar" style="height: 16px; margin-bottom: 20px;">
-            <div class="progress-fill" id="waterProgress" style="width: 0%;"></div>
+          <div class="progress-bar" style="height:14px;margin-bottom:18px">
+            <div class="progress-fill" id="waterProgress" style="width:0%"></div>
           </div>
-          <div style="display: flex; gap: 12px; justify-content: center;">
-            <button class="btn btn-primary btn-lg" onclick="addWater()" style="font-size: 24px; padding: 12px 28px;">&#128167; +1</button>
+          <div style="display:flex;gap:12px;justify-content:center">
+            <button class="btn btn-primary btn-lg" onclick="addWater()" style="font-size:22px;padding:10px 24px">💧 +1</button>
             <button class="btn btn-secondary" onclick="removeWater()">-1</button>
           </div>
-          <div id="waterGlasses" style="display: flex; gap: 6px; justify-content: center; margin-top: 16px; flex-wrap: wrap;">
-          </div>
+          <div id="waterGlasses" style="display:flex;gap:5px;justify-content:center;margin-top:14px;flex-wrap:wrap"></div>
         </div>
       </div>
-
-      <!-- Recent Meals -->
-      <div class="card" style="margin-top: 32px;">
+      <div class="card">
         <div class="card-header">
           <h2>Today's Meals</h2>
           <a href="tracker.html" class="btn btn-sm btn-secondary">View All</a>
         </div>
         <div id="recentMeals">
-          <div class="empty-state">
-            <div class="empty-icon">&#127869;</div>
-            <p>No meals logged today. <a href="tracker.html">Log your first meal</a></p>
-          </div>
+          <div class="empty-state"><div class="empty-icon">🍽️</div><p>No meals logged today. <a href="tracker.html" style="color:var(--teal)">Log your first meal</a></p></div>
         </div>
       </div>
     </div>
   </div>
+  <footer class="page-footer">&copy; 2025 Health+ Platform | All Rights Reserved</footer>
+</div>
 
-  <footer class="page-footer">
-    &copy; 2025 Health+ Platform | All Rights Reserved
-  </footer>
+<script src="js/storage.js"></script>
+<script src="js/calories.js"></script>
+<script src="js/auth.js"></script>
+<script>
+function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('show');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('show');}
+function initSidebar(){try{const p=JSON.parse(localStorage.getItem('hp_profile')||'null');if(p?.name){const n=p.name.split(' ')[0];document.getElementById('sbName').textContent=n;document.getElementById('sbAv').textContent=n[0].toUpperCase();document.getElementById('greeting').textContent='Welcome back, '+n+'!';}}catch{}}
+function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
+initSidebar();
 
-  <script src="js/storage.js"></script>
-  <script src="js/calories.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/ui.js"></script>
-  <script>
-    UI.renderNav('dashboard');
+const profile = Storage.getProfile();
+const promptEl = document.getElementById('profilePrompt');
+const contentEl = document.getElementById('dashboardContent');
 
-    const profile = Storage.getProfile();
-    const promptEl = document.getElementById('profilePrompt');
-    const contentEl = document.getElementById('dashboardContent');
+if (!profile || !profile.age) {
+  promptEl.innerHTML = `<div class="card" style="text-align:center;padding:40px">
+    <div style="font-size:40px;margin-bottom:16px">👤</div>
+    <h3 style="margin-bottom:8px;color:var(--navy)">Complete your profile first</h3>
+    <p style="color:var(--muted);margin-bottom:20px">We need your details to calculate your calorie targets and show your dashboard.</p>
+    <a href="profile.html" class="btn btn-primary">Set Up Profile</a>
+  </div>`;
+  contentEl.style.display = 'none';
+} else {
+  initDashboard();
+}
 
-    /* Personalized greeting */
-    if (profile.name) {
-      document.getElementById('greeting').textContent = `Welcome back, ${profile.name}!`;
-    }
+function initDashboard() {
+  const calc = CalorieCalculator.calculate(profile);
+  const todayMeals = Storage.getMealLog();
+  const history = Storage.getMealHistory ? Storage.getMealHistory(7) : [];
 
-    /* Check if profile is complete */
-    if (UI.showProfilePrompt(promptEl)) {
-      contentEl.style.display = 'none';
-    } else {
-      initDashboard();
-    }
+  const consumedCalories = todayMeals.reduce((s,m)=>s+(Number(m.calories)||0),0);
+  const consumedProtein  = todayMeals.reduce((s,m)=>s+(Number(m.protein)||0),0);
+  const consumedCarbs    = todayMeals.reduce((s,m)=>s+(Number(m.carbs)||0),0);
+  const consumedFat      = todayMeals.reduce((s,m)=>s+(Number(m.fat)||0),0);
+  const remaining        = Math.max(0, calc.targetCalories - consumedCalories);
 
-    function initDashboard() {
-      const calc = CalorieCalculator.calculate(profile);
-      const todayMeals = Storage.getMealLog();
-      const water = Storage.getWaterLog();
-      const history = Storage.getMealHistory(7);
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-label">Calorie Target</div><div class="stat-value">${calc.targetCalories} <span class="stat-unit">kcal</span></div></div>
+    <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-label">Consumed</div><div class="stat-value">${consumedCalories} <span class="stat-unit">kcal</span></div></div>
+    <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-label">Remaining</div><div class="stat-value">${remaining} <span class="stat-unit">kcal</span></div></div>
+    <div class="stat-card"><div class="stat-icon">🥩</div><div class="stat-label">Protein</div><div class="stat-value">${consumedProtein} <span class="stat-unit">/ ${calc.macros.protein}g</span></div></div>
+  `;
 
-      const consumedCalories = todayMeals.reduce((sum, m) => sum + (Number(m.calories) || 0), 0);
-      const consumedProtein = todayMeals.reduce((sum, m) => sum + (Number(m.protein) || 0), 0);
-      const consumedCarbs = todayMeals.reduce((sum, m) => sum + (Number(m.carbs) || 0), 0);
-      const consumedFat = todayMeals.reduce((sum, m) => sum + (Number(m.fat) || 0), 0);
-      const remainingCalories = Math.max(0, calc.targetCalories - consumedCalories);
+  const labels   = history.map(d=>new Date(d.date).toLocaleDateString([],{weekday:'short'})).reverse();
+  const calories = history.map(d=>d.totalCalories).reverse();
+  const target   = history.map(()=>calc.targetCalories);
 
-      /* Stat Cards */
-      document.getElementById('statsGrid').innerHTML = `
-        <div class="stat-card">
-          <div class="stat-icon green">&#127919;</div>
-          <div class="stat-label">Calorie Target</div>
-          <div class="stat-value">${calc.targetCalories} <span class="stat-unit">kcal</span></div>
+  new Chart(document.getElementById('calorieChart'),{type:'bar',data:{labels,datasets:[
+    {label:'Consumed',data:calories,backgroundColor:'rgba(42,157,143,.6)',borderColor:'rgba(42,157,143,1)',borderWidth:1,borderRadius:6},
+    {label:'Target',data:target,type:'line',borderColor:'#e76f51',borderDash:[6,3],borderWidth:2,pointRadius:0,fill:false}
+  ]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}});
+
+  new Chart(document.getElementById('macroChart'),{type:'doughnut',data:{labels:['Protein','Carbs','Fat'],datasets:[{
+    data:[consumedProtein||1,consumedCarbs||1,consumedFat||1],
+    backgroundColor:['#2a9d8f','#e9c46a','#e76f51'],borderWidth:2,borderColor:'#fff'
+  }]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+
+  updateWaterUI();
+  if (todayMeals.length) {
+    document.getElementById('recentMeals').innerHTML = todayMeals.slice(0,5).map(m=>`
+      <div class="list-item">
+        <div class="item-info"><span class="item-icon">🍽️</span>
+          <div><div class="item-name">${m.name}</div><div class="item-meta">${m.mealType||'Meal'} · ${m.calories} kcal</div></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon orange">&#128293;</div>
-          <div class="stat-label">Consumed</div>
-          <div class="stat-value">${consumedCalories} <span class="stat-unit">kcal</span></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon ${remainingCalories > 0 ? 'blue' : 'red'}">&#9201;</div>
-          <div class="stat-label">Remaining</div>
-          <div class="stat-value">${remainingCalories} <span class="stat-unit">kcal</span></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon green">&#129385;</div>
-          <div class="stat-label">Protein</div>
-          <div class="stat-value">${consumedProtein} <span class="stat-unit">/ ${calc.macros.protein}g</span></div>
-        </div>
-      `;
+        <div style="font-size:12px;color:var(--muted)">P:${m.protein||0}g C:${m.carbs||0}g F:${m.fat||0}g</div>
+      </div>`).join('');
+  }
+}
 
-      /* Weekly Calorie Chart */
-      const chartLabels = history.map(d => UI.formatDate(d.date)).reverse();
-      const chartData = history.map(d => d.totalCalories).reverse();
-      const targetLine = history.map(() => calc.targetCalories);
-
-      new Chart(document.getElementById('calorieChart'), {
-        type: 'bar',
-        data: {
-          labels: chartLabels,
-          datasets: [
-            {
-              label: 'Calories Consumed',
-              data: chartData,
-              backgroundColor: 'rgba(42, 157, 143, 0.6)',
-              borderColor: 'rgba(42, 157, 143, 1)',
-              borderWidth: 1,
-              borderRadius: 6,
-            },
-            {
-              label: 'Target',
-              data: targetLine,
-              type: 'line',
-              borderColor: '#e76f51',
-              borderDash: [6, 3],
-              borderWidth: 2,
-              pointRadius: 0,
-              fill: false,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { position: 'bottom' } },
-          scales: { y: { beginAtZero: true } },
-        },
-      });
-
-      /* Macro Donut Chart */
-      new Chart(document.getElementById('macroChart'), {
-        type: 'doughnut',
-        data: {
-          labels: ['Protein', 'Carbs', 'Fat'],
-          datasets: [{
-            data: [consumedProtein || 0, consumedCarbs || 0, consumedFat || 0],
-            backgroundColor: ['#2a9d8f', '#e9c46a', '#e76f51'],
-            borderWidth: 2,
-            borderColor: '#fff',
-          }],
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'bottom' },
-            tooltip: {
-              callbacks: {
-                label: function(ctx) {
-                  return `${ctx.label}: ${ctx.parsed}g`;
-                }
-              }
-            }
-          },
-        },
-      });
-
-      /* Water Tracker */
-      updateWaterUI();
-
-      /* Recent Meals */
-      renderRecentMeals(todayMeals);
-    }
-
-    /* --- Water Functions --- */
-    function addWater() {
-      Storage.addWaterGlass();
-      updateWaterUI();
-    }
-
-    function removeWater() {
-      Storage.removeWaterGlass();
-      updateWaterUI();
-    }
-
-    function updateWaterUI() {
-      const water = Storage.getWaterLog();
-      const pct = Math.min(100, (water.glasses / water.goal) * 100);
-
-      document.getElementById('waterCount').textContent = `${water.glasses} / ${water.goal} glasses`;
-      document.getElementById('waterProgress').style.width = pct + '%';
-
-      /* Render glass icons */
-      const glassesEl = document.getElementById('waterGlasses');
-      let html = '';
-      for (let i = 0; i < water.goal; i++) {
-        html += `<span style="font-size: 24px; opacity: ${i < water.glasses ? 1 : 0.25};">&#128167;</span>`;
-      }
-      glassesEl.innerHTML = html;
-    }
-
-    /* --- Recent Meals --- */
-    function renderRecentMeals(meals) {
-      const container = document.getElementById('recentMeals');
-      if (!meals.length) return;
-
-      container.innerHTML = meals.slice(0, 5).map(m => `
-        <div class="list-item">
-          <div class="item-info">
-            <span class="item-icon">&#127869;</span>
-            <div>
-              <div class="item-name">${m.name}</div>
-              <div class="item-meta">${m.mealType || 'Meal'} &bull; ${m.calories} kcal</div>
-            </div>
-          </div>
-          <div style="font-size: 13px; color: var(--text-muted);">
-            P: ${m.protein || 0}g &bull; C: ${m.carbs || 0}g &bull; F: ${m.fat || 0}g
-          </div>
-        </div>
-      `).join('');
-    }
-  </script>
+function addWater(){ Storage.addWaterGlass(); updateWaterUI(); }
+function removeWater(){ Storage.removeWaterGlass(); updateWaterUI(); }
+function updateWaterUI(){
+  const w = Storage.getWaterLog();
+  const pct = Math.min(100,(w.glasses/w.goal)*100);
+  document.getElementById('waterCount').textContent = `${w.glasses} / ${w.goal} glasses`;
+  document.getElementById('waterProgress').style.width = pct+'%';
+  let html='';
+  for(let i=0;i<w.goal;i++) html+=`<span style="font-size:22px;opacity:${i<w.glasses?1:.2}">💧</span>`;
+  document.getElementById('waterGlasses').innerHTML=html;
+}
+</script>
 </body>
 </html>
