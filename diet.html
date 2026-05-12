@@ -4,123 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diet Planner - Health+</title>
-  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/sidebar.css">
   <style>
-    /* Diet Plan Result Styles */
-    .meal-card {
-      background: var(--surface-alt);
-      border-radius: var(--radius-md);
-      padding: 20px;
-      margin-bottom: 16px;
-      border-left: 4px solid var(--primary);
-    }
-
-    .meal-card h3 {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--text-primary);
-    }
-
-    .meal-card .meal-meta {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .meal-card ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .meal-card li {
-      padding: 6px 0;
-      font-size: 14px;
-      color: var(--text-secondary);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .meal-card li:last-child {
-      border-bottom: none;
-    }
-
-    .plan-summary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: #fff;
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .plan-summary .total-cal {
-      font-size: 42px;
-      font-weight: 700;
-    }
-
-    .plan-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .loading-spinner {
-      text-align: center;
-      padding: 40px;
-    }
-
-    .loading-spinner .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    .meal-card{background:var(--bg);border-radius:var(--r);padding:18px;margin-bottom:14px;border-left:4px solid var(--teal);}
+    .meal-card h3{font-size:15px;font-weight:600;margin-bottom:3px;color:var(--navy);}
+    .meal-card .meal-meta{font-size:12px;color:var(--muted);margin-bottom:10px;}
+    .meal-card ul{list-style:none;padding:0;}
+    .meal-card li{padding:5px 0;font-size:13.5px;color:var(--text);border-bottom:1px solid var(--border);}
+    .meal-card li:last-child{border-bottom:none;}
+    .plan-summary{background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;border-radius:var(--r);padding:24px;text-align:center;margin-bottom:20px;}
+    .plan-summary .total-cal{font-size:42px;font-weight:700;}
+    .plan-actions{display:flex;gap:12px;margin-top:14px;justify-content:center;flex-wrap:wrap;}
+    .spinner{width:36px;height:36px;border:4px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
-  <div class="top-nav" id="top-nav"></div>
+
+<div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo"><span>Health<em>+</em></span></div>
+  <nav class="sb-nav">
+    <div class="nav-sec">Main</div>
+    <a class="nav-item" href="index.html"><span class="ic">🏠</span>Home</a>
+    <a class="nav-item" href="dashboard.html"><span class="ic">📊</span>Dashboard</a>
+    <div class="nav-sec">Nutrition</div>
+    <a class="nav-item active" href="diet.html"><span class="ic">🥗</span>Diet Plan</a>
+    <a class="nav-item" href="tracker.html"><span class="ic">📝</span>Tracker</a>
+    <a class="nav-item" href="grocery.html"><span class="ic">🛒</span>Grocery</a>
+    <div class="nav-sec">Tools</div>
+    <a class="nav-item" href="coach.html"><span class="ic">🧠</span>AI Coach</a>
+    <a class="nav-item" href="scanner.html"><span class="ic">📷</span>Scanner</a>
+    <a class="nav-item" href="photo-log.html"><span class="ic">🖼️</span>Photo Log</a>
+    <a class="nav-item" href="analytics.html"><span class="ic">📈</span>Analytics</a>
+    <div class="nav-sec">Account</div>
+    <a class="nav-item" href="profile.html"><span class="ic">👤</span>Profile</a>
+    <a class="nav-item" href="reminder.html"><span class="ic">🔔</span>Reminders</a>
+  </nav>
+  <div class="sb-foot">
+    <div class="u-chip">
+      <div class="u-av" id="sbAv">U</div>
+      <div><div class="u-name" id="sbName">User</div><div class="u-role">Member</div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main-wrap">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSB()">☰</button>
+      <div><div class="topbar-title">AI Diet Planner</div><div class="topbar-sub">Personalized meal plans powered by AI</div></div>
+    </div>
+  </div>
 
   <div class="page-container fade-in">
-    <div class="page-header">
-      <h1>AI Diet Planner</h1>
-      <p>Get a personalized daily meal plan powered by AI, tailored to your body and goals.</p>
-    </div>
-
-    <!-- Calorie Target Banner (if profile exists) -->
-    <div id="targetBanner" class="card" style="display: none; margin-bottom: 24px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <div id="targetBanner" class="card" style="display:none;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
-          <div style="font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Your Dynamic Calorie Target</div>
-          <div style="font-size: 28px; font-weight: 700; color: var(--primary);" id="targetDisplay">--</div>
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Your Dynamic Calorie Target</div>
+          <div style="font-size:28px;font-weight:700;color:var(--teal)" id="targetDisplay">--</div>
         </div>
-        <div style="font-size: 13px; color: var(--text-secondary);" id="targetDetails"></div>
+        <div style="font-size:13px;color:var(--muted)" id="targetDetails"></div>
       </div>
     </div>
 
     <div class="grid-2">
-      <!-- Diet Form -->
       <div class="card">
-        <div class="card-header">
-          <h2>Your Details</h2>
-        </div>
+        <div class="card-header"><h2>Your Details</h2></div>
         <form id="dietForm">
           <div class="form-row">
-            <div class="form-group">
-              <label for="age">Age</label>
-              <input type="number" id="age" name="age" class="form-control" placeholder="e.g. 25" required>
-            </div>
-            <div class="form-group">
-              <label for="gender">Gender</label>
-              <select id="gender" name="gender" class="form-control" required>
+            <div class="form-group"><label>Age</label><input type="number" id="age" class="form-control" placeholder="e.g. 25" required></div>
+            <div class="form-group"><label>Gender</label>
+              <select id="gender" class="form-control" required>
                 <option value="">Select</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -129,18 +84,11 @@
             </div>
           </div>
           <div class="form-row">
-            <div class="form-group">
-              <label for="height">Height (cm)</label>
-              <input type="number" id="height" name="height" class="form-control" placeholder="e.g. 170" required>
-            </div>
-            <div class="form-group">
-              <label for="weight">Weight (kg)</label>
-              <input type="number" id="weight" name="weight" class="form-control" placeholder="e.g. 70" required>
-            </div>
+            <div class="form-group"><label>Height (cm)</label><input type="number" id="height" class="form-control" placeholder="e.g. 170" required></div>
+            <div class="form-group"><label>Weight (kg)</label><input type="number" id="weight" class="form-control" placeholder="e.g. 70" required></div>
           </div>
-          <div class="form-group">
-            <label for="activityLevel">Activity Level</label>
-            <select id="activityLevel" name="activityLevel" class="form-control">
+          <div class="form-group"><label>Activity Level</label>
+            <select id="activityLevel" class="form-control">
               <option value="sedentary">Sedentary</option>
               <option value="light">Lightly Active</option>
               <option value="moderate" selected>Moderately Active</option>
@@ -149,18 +97,16 @@
             </select>
           </div>
           <div class="form-row">
-            <div class="form-group">
-              <label for="goal">Goal</label>
-              <select id="goal" name="goal" class="form-control" required>
+            <div class="form-group"><label>Goal</label>
+              <select id="goal" class="form-control" required>
                 <option value="">Select</option>
                 <option value="Weight Loss">Weight Loss</option>
                 <option value="Muscle Gain">Muscle Gain</option>
                 <option value="Maintenance">Maintenance</option>
               </select>
             </div>
-            <div class="form-group">
-              <label for="dietType">Diet Type</label>
-              <select id="dietType" name="dietType" class="form-control" required>
+            <div class="form-group"><label>Diet Type</label>
+              <select id="dietType" class="form-control" required>
                 <option value="">Select</option>
                 <option value="Vegetarian">Vegetarian</option>
                 <option value="Vegan">Vegan</option>
@@ -169,169 +115,90 @@
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label for="allergies">Allergies (optional)</label>
-            <input type="text" id="allergies" name="allergies" class="form-control" placeholder="e.g. nuts, dairy, gluten">
-          </div>
-          <button type="submit" class="btn btn-primary btn-lg btn-block">Generate Diet Plan</button>
+          <div class="form-group"><label>Allergies (optional)</label><input type="text" id="allergies" class="form-control" placeholder="e.g. nuts, dairy, gluten"></div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block">🥗 Generate Diet Plan</button>
         </form>
       </div>
 
-      <!-- Result Panel -->
       <div>
         <div id="result">
           <div class="card">
-            <div class="empty-state">
-              <div class="empty-icon">&#127823;</div>
-              <p>Fill in your details and click "Generate Diet Plan" to receive a personalized meal plan.</p>
-            </div>
+            <div class="empty-state"><div class="empty-icon">🥗</div><p>Fill in your details and click "Generate Diet Plan" to receive a personalized meal plan.</p></div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <footer class="page-footer">&copy; 2025 Health+ Platform | All Rights Reserved</footer>
+</div>
 
-  <footer class="page-footer">
-    &copy; 2025 Health+ Platform | All Rights Reserved
-  </footer>
+<script src="js/storage.js"></script>
+<script src="js/calories.js"></script>
+<script src="js/auth.js"></script>
+<script>
+function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('show');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('show');}
+function initSidebar(){try{const p=JSON.parse(localStorage.getItem('hp_profile')||'null');if(p?.name){const n=p.name.split(' ')[0];document.getElementById('sbName').textContent=n;document.getElementById('sbAv').textContent=n[0].toUpperCase();}}catch{}}
+function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
+initSidebar();
 
-  <script src="js/storage.js"></script>
-  <script src="js/calories.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/ui.js"></script>
-  <script>
-    UI.renderNav('diet');
+const fields = ['age','gender','height','weight','activityLevel','goal','dietType','allergies'];
+const profile = Storage.getProfile();
+fields.forEach(f=>{ const el=document.getElementById(f); if(el&&profile[f]) el.value=profile[f]; });
 
-    const form = document.getElementById('dietForm');
-    const resultDiv = document.getElementById('result');
-    const formFields = ['age', 'gender', 'height', 'weight', 'activityLevel', 'goal', 'dietType', 'allergies'];
+function updateBanner(){
+  const age=document.getElementById('age').value, gender=document.getElementById('gender').value,
+        height=document.getElementById('height').value, weight=document.getElementById('weight').value,
+        goal=document.getElementById('goal').value, activity=document.getElementById('activityLevel').value;
+  if(age&&gender&&height&&weight&&goal){
+    const calc=CalorieCalculator.calculate({age,gender,height,weight,activityLevel:activity,goal});
+    document.getElementById('targetDisplay').textContent=calc.targetCalories+' kcal/day';
+    document.getElementById('targetDetails').innerHTML=`BMR: ${calc.bmr} &bull; TDEE: ${calc.tdee} &bull; P: ${calc.macros.protein}g C: ${calc.macros.carbs}g F: ${calc.macros.fat}g`;
+    document.getElementById('targetBanner').style.display='block';
+  }
+}
+['age','gender','height','weight','goal','activityLevel'].forEach(f=>{
+  document.getElementById(f).addEventListener('change',updateBanner);
+  document.getElementById(f).addEventListener('input',updateBanner);
+});
+updateBanner();
 
-    /* Pre-fill from saved profile */
-    const profile = Storage.getProfile();
-    formFields.forEach(f => {
-      const el = document.getElementById(f);
-      if (el && profile[f]) el.value = profile[f];
+document.getElementById('dietForm').addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  const resultDiv=document.getElementById('result');
+  resultDiv.innerHTML=`<div class="card"><div style="text-align:center;padding:40px"><div class="spinner"></div><p style="color:var(--muted)">Generating your personalized diet plan...</p></div></div>`;
+  const data={};
+  fields.forEach(f=>{ data[f]=document.getElementById(f).value; });
+  const calc=CalorieCalculator.calculate({age:data.age,gender:data.gender,height:data.height,weight:data.weight,activityLevel:data.activityLevel,goal:data.goal});
+  data.targetCalories=calc.targetCalories; data.macros=calc.macros;
+  try{
+    const API_BASE=window.location.hostname==='localhost'?'http://localhost:3000':'';
+    const res=await fetch(API_BASE+'/api/diet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const json=await res.json();
+    if(json.error){resultDiv.innerHTML=`<div class="card"><p style="color:var(--danger);text-align:center;padding:20px">Error: ${json.error}</p></div>`;return;}
+    const plan=json.plan;
+    Storage.saveDietPlan(plan);
+    let html=`<div class="plan-summary">
+      <div style="font-size:13px;opacity:.8;margin-bottom:4px">Total Daily Calories</div>
+      <div class="total-cal">${plan.totalCalories} kcal</div>
+      <div style="font-size:13px;opacity:.8;margin-top:4px">${plan.notes||''}</div>
+      <div class="plan-actions">
+        <button class="btn" style="background:rgba(255,255,255,.2);color:#fff" onclick="location.href='grocery.html'">🛒 Grocery List</button>
+        <button class="btn" style="background:rgba(255,255,255,.2);color:#fff" onclick="location.href='tracker.html'">📝 Start Tracking</button>
+      </div>
+    </div>`;
+    (plan.meals||[]).forEach(m=>{
+      html+=`<div class="meal-card"><h3>${m.meal}</h3><div class="meal-meta">${m.calories} kcal · P: ${m.protein||0}g · C: ${m.carbs||0}g · F: ${m.fat||0}g</div><ul>${m.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
     });
-
-    /* Show dynamic calorie target as user fills the form */
-    function updateTargetBanner() {
-      const banner = document.getElementById('targetBanner');
-      const age = document.getElementById('age').value;
-      const gender = document.getElementById('gender').value;
-      const height = document.getElementById('height').value;
-      const weight = document.getElementById('weight').value;
-      const goal = document.getElementById('goal').value;
-      const activity = document.getElementById('activityLevel').value;
-
-      if (age && gender && height && weight && goal) {
-        const calc = CalorieCalculator.calculate({ age, gender, height, weight, activityLevel: activity, goal });
-        document.getElementById('targetDisplay').textContent = calc.targetCalories + ' kcal/day';
-        document.getElementById('targetDetails').innerHTML =
-          `BMR: ${calc.bmr} &bull; TDEE: ${calc.tdee} &bull; P: ${calc.macros.protein}g C: ${calc.macros.carbs}g F: ${calc.macros.fat}g`;
-        banner.style.display = 'block';
-      }
-    }
-
-    ['age', 'gender', 'height', 'weight', 'goal', 'activityLevel'].forEach(f => {
-      document.getElementById(f).addEventListener('change', updateTargetBanner);
-      document.getElementById(f).addEventListener('input', updateTargetBanner);
+    (plan.snacks||[]).forEach(s=>{
+      html+=`<div class="meal-card" style="border-left-color:var(--accent)"><h3>🍎 Snack</h3><div class="meal-meta">${s.calories} kcal</div><ul>${s.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
     });
-    updateTargetBanner();
-
-    /* Form submission - sends to backend with dynamic calorie target */
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      resultDiv.innerHTML = `
-        <div class="card">
-          <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p style="color: var(--text-secondary);">Generating your personalized diet plan...</p>
-          </div>
-        </div>
-      `;
-
-      const data = {};
-      formFields.forEach(f => { data[f] = document.getElementById(f).value; });
-
-      /* Calculate dynamic calorie target to pass to the AI prompt */
-      const calc = CalorieCalculator.calculate({
-        age: data.age,
-        gender: data.gender,
-        height: data.height,
-        weight: data.weight,
-        activityLevel: data.activityLevel,
-        goal: data.goal,
-      });
-      data.targetCalories = calc.targetCalories;
-      data.macros = calc.macros;
-
-      try {
-        const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000' : '';
-        const response = await fetch(API_BASE + '/api/diet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-
-        const json = await response.json();
-
-        if (json.error) {
-          resultDiv.innerHTML = `<div class="card"><p style="color: var(--danger); text-align: center; padding: 20px;">Error: ${json.error}</p></div>`;
-          return;
-        }
-
-        const plan = json.plan;
-
-        /* Save diet plan for grocery list generation and tracking */
-        Storage.saveDietPlan(plan);
-
-        /* Render the plan summary */
-        let html = `
-          <div class="plan-summary">
-            <div style="font-size: 14px; opacity: 0.8; margin-bottom: 4px;">Total Daily Calories</div>
-            <div class="total-cal">${plan.totalCalories} kcal</div>
-            <div style="font-size: 14px; opacity: 0.8; margin-top: 4px;">${plan.notes || ''}</div>
-            <div class="plan-actions">
-              <button class="btn" style="background: rgba(255,255,255,0.2); color: #fff;" onclick="window.location.href='grocery.html'">&#128722; Generate Grocery List</button>
-              <button class="btn" style="background: rgba(255,255,255,0.2); color: #fff;" onclick="window.location.href='tracker.html'">&#128221; Start Tracking</button>
-            </div>
-          </div>
-        `;
-
-        /* Render individual meals */
-        if (plan.meals && plan.meals.length) {
-          plan.meals.forEach(meal => {
-            html += `
-              <div class="meal-card">
-                <h3>${meal.meal}</h3>
-                <div class="meal-meta">${meal.calories} kcal &bull; P: ${meal.protein || 0}g &bull; C: ${meal.carbs || 0}g &bull; F: ${meal.fat || 0}g</div>
-                <ul>${meal.items.map(item => `<li>${item}</li>`).join('')}</ul>
-              </div>
-            `;
-          });
-        }
-
-        /* Render snacks */
-        if (plan.snacks && plan.snacks.length) {
-          plan.snacks.forEach(snack => {
-            html += `
-              <div class="meal-card" style="border-left-color: var(--accent);">
-                <h3>Snack</h3>
-                <div class="meal-meta">${snack.calories} kcal</div>
-                <ul>${snack.items.map(item => `<li>${item}</li>`).join('')}</ul>
-              </div>
-            `;
-          });
-        }
-
-        resultDiv.innerHTML = html;
-        UI.showToast('Diet plan generated and saved!');
-      } catch (err) {
-        resultDiv.innerHTML = `<div class="card"><p style="color: var(--danger); text-align: center; padding: 20px;">Error fetching diet plan. Make sure the server is running.</p></div>`;
-        console.error(err);
-      }
-    });
-  </script>
+    resultDiv.innerHTML=html;
+    showToast('Diet plan generated and saved!');
+  }catch(err){
+    resultDiv.innerHTML=`<div class="card"><p style="color:var(--danger);text-align:center;padding:20px">Error fetching diet plan. Please try again.</p></div>`;
+  }
+});
+</script>
 </body>
 </html>
