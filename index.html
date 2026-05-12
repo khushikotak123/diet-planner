@@ -7,237 +7,142 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#264653">
   <link rel="icon" href="icons/icon-192.png">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/sidebar.css">
   <style>
-    /* Hero Section */
     .hero {
-      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-      color: #fff;
-      text-align: center;
-      padding: 80px 24px 60px;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--teal) 100%);
+      color: #fff; text-align: center; padding: 80px 24px 60px;
     }
-
-    .hero h2 {
-      font-size: 36px;
-      font-weight: 700;
-      margin-bottom: 16px;
-      letter-spacing: -0.5px;
-    }
-
-    .hero p {
-      font-size: 17px;
-      max-width: 600px;
-      margin: 0 auto 32px;
-      opacity: 0.9;
-      line-height: 1.7;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .hero .btn {
-      padding: 14px 32px;
-      font-size: 16px;
-      border-radius: var(--radius-md);
-    }
-
-    /* Feature Cards Grid */
-    .features-section {
-      padding: 60px 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .features-section h2 {
-      text-align: center;
-      font-size: 28px;
-      margin-bottom: 12px;
-    }
-
-    .features-section > p {
-      text-align: center;
-      color: var(--text-secondary);
-      margin-bottom: 40px;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-    }
-
+    .hero h2 { font-family: var(--serif); font-size: 38px; margin-bottom: 16px; letter-spacing: -.5px; }
+    .hero p { font-size: 17px; max-width: 600px; margin: 0 auto 32px; opacity: .9; line-height: 1.7; }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .features-section { padding: 60px 32px; max-width: 1200px; margin: 0 auto; }
+    .features-section h2 { text-align: center; font-family: var(--serif); font-size: 28px; margin-bottom: 10px; color: var(--navy); }
+    .features-section > p { text-align: center; color: var(--muted); margin-bottom: 40px; font-size: 15px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 20px; }
     .feature-card {
-      background: var(--surface);
-      border-radius: var(--radius-lg);
-      padding: 32px 24px;
-      text-align: center;
-      box-shadow: var(--shadow-sm);
-      border: 1px solid var(--border);
-      transition: var(--transition);
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      display: block;
+      background: var(--surface); border-radius: var(--r); padding: 28px 22px;
+      text-align: center; box-shadow: var(--sh); border: 1px solid var(--border);
+      transition: var(--tr); cursor: pointer; text-decoration: none; color: inherit; display: block;
     }
-
-    .feature-card:hover {
-      transform: translateY(-6px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--primary);
-    }
-
-    .feature-card .icon {
-      font-size: 40px;
-      margin-bottom: 16px;
-    }
-
-    .feature-card h3 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text-primary);
-    }
-
-    .feature-card p {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-
-    .feature-card .card-link {
-      display: inline-block;
-      margin-top: 16px;
-      color: var(--primary);
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    @media (max-width: 768px) {
-      .hero h2 { font-size: 26px; }
-      .hero { padding: 60px 20px 40px; }
-      .features-section { padding: 40px 16px; }
-    }
+    .feature-card:hover { transform: translateY(-5px); box-shadow: 0 8px 24px rgba(38,70,83,.14); border-color: var(--teal); }
+    .feature-card .icon { font-size: 38px; margin-bottom: 14px; }
+    .feature-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; color: var(--navy); }
+    .feature-card p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+    .feature-card .card-link { display: inline-block; margin-top: 14px; color: var(--teal); font-weight: 600; font-size: 13px; }
+    @media(max-width:768px){ .hero h2{font-size:26px} .hero{padding:50px 20px 36px} .features-section{padding:36px 16px} }
   </style>
 </head>
 <body>
-  <div class="top-nav" id="top-nav"></div>
 
-  <!-- Hero Section -->
+<div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo"><span>Health<em>+</em></span></div>
+  <nav class="sb-nav">
+    <div class="nav-sec">Main</div>
+    <a class="nav-item active" href="index.html"><span class="ic">🏠</span>Home</a>
+    <a class="nav-item" href="dashboard.html"><span class="ic">📊</span>Dashboard</a>
+    <div class="nav-sec">Nutrition</div>
+    <a class="nav-item" href="diet.html"><span class="ic">🥗</span>Diet Plan</a>
+    <a class="nav-item" href="tracker.html"><span class="ic">📝</span>Tracker</a>
+    <a class="nav-item" href="grocery.html"><span class="ic">🛒</span>Grocery</a>
+    <div class="nav-sec">Tools</div>
+    <a class="nav-item" href="coach.html"><span class="ic">🧠</span>AI Coach</a>
+    <a class="nav-item" href="scanner.html"><span class="ic">📷</span>Scanner</a>
+    <a class="nav-item" href="photo-log.html"><span class="ic">🖼️</span>Photo Log</a>
+    <a class="nav-item" href="analytics.html"><span class="ic">📈</span>Analytics</a>
+    <div class="nav-sec">Account</div>
+    <a class="nav-item" href="profile.html"><span class="ic">👤</span>Profile</a>
+    <a class="nav-item" href="reminder.html"><span class="ic">🔔</span>Reminders</a>
+  </nav>
+  <div class="sb-foot">
+    <div class="u-chip">
+      <div class="u-av" id="sbAv">U</div>
+      <div><div class="u-name" id="sbName">User</div><div class="u-role">Member</div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="main-wrap">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSB()">☰</button>
+      <div><div class="topbar-title">Health+</div><div class="topbar-sub">Your personal health platform</div></div>
+    </div>
+    <a href="auth.html" class="btn btn-primary btn-sm">Sign In</a>
+  </div>
+
   <section class="hero fade-in">
     <h2>Take Charge of Your Health</h2>
-    <p>Personalized diet plans, smart calorie tracking, meal recommendations, and medication reminders &mdash; all powered by intelligent tools in one platform.</p>
+    <p>Personalized diet plans, smart calorie tracking, meal recommendations, and medication reminders — all powered by intelligent tools in one platform.</p>
     <div class="hero-actions">
       <a href="dashboard.html" class="btn btn-accent btn-lg">Go to Dashboard</a>
-      <a href="profile.html" class="btn btn-lg" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);">Set Up Profile</a>
+      <a href="profile.html" class="btn btn-lg" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);">Set Up Profile</a>
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="features-section" id="features">
+  <section class="features-section">
     <h2>Everything You Need</h2>
     <p>A complete health toolkit designed to help you eat better, stay hydrated, and never miss a medication.</p>
-
     <div class="features-grid">
       <a href="dashboard.html" class="feature-card">
-        <div class="icon">&#128202;</div>
-        <h3>Smart Dashboard</h3>
+        <div class="icon">📊</div><h3>Smart Dashboard</h3>
         <p>See your daily calorie progress, macro breakdown, water intake, and weekly trends at a glance.</p>
-        <span class="card-link">View Dashboard &rarr;</span>
+        <span class="card-link">View Dashboard →</span>
       </a>
-
       <a href="diet.html" class="feature-card">
-        <div class="icon">&#127823;</div>
-        <h3>AI Diet Planner</h3>
+        <div class="icon">🥗</div><h3>AI Diet Planner</h3>
         <p>Get personalized meal plans with dynamic calorie targets based on your BMR, TDEE, and fitness goals.</p>
-        <span class="card-link">Plan Diet &rarr;</span>
+        <span class="card-link">Plan Diet →</span>
       </a>
-
       <a href="tracker.html" class="feature-card">
-        <div class="icon">&#128221;</div>
-        <h3>Meal Tracker</h3>
+        <div class="icon">📝</div><h3>Meal Tracker</h3>
         <p>Log meals, track calories vs target, and view your 7-day nutrition history with charts.</p>
-        <span class="card-link">Track Meals &rarr;</span>
+        <span class="card-link">Track Meals →</span>
       </a>
-
       <a href="grocery.html" class="feature-card">
-        <div class="icon">&#128722;</div>
-        <h3>Grocery List</h3>
+        <div class="icon">🛒</div><h3>Grocery List</h3>
         <p>Auto-generate a categorized grocery list from your diet plan, or add items manually.</p>
-        <span class="card-link">View List &rarr;</span>
+        <span class="card-link">View List →</span>
       </a>
-
-      <a href="profile.html" class="feature-card">
-        <div class="icon">&#128100;</div>
-        <h3>Smart Calories</h3>
-        <p>Dynamic BMR &amp; TDEE calculations with goal-based adjustments and macro recommendations.</p>
-        <span class="card-link">Set Up Profile &rarr;</span>
-      </a>
-
-      <a href="reminder.html" class="feature-card">
-        <div class="icon">&#128138;</div>
-        <h3>Medication Reminder</h3>
-        <p>Track medications and get timely SMS reminders to never miss a dose.</p>
-        <span class="card-link">Set Reminders &rarr;</span>
-      </a>
-
-      <a href="scanner.html" class="feature-card">
-        <div class="icon">&#128247;</div>
-        <h3>Barcode Scanner</h3>
-        <p>Scan product barcodes to instantly get nutritional info and add to your meal log.</p>
-        <span class="card-link">Scan Now &rarr;</span>
-      </a>
-
-      <a href="photo-log.html" class="feature-card">
-        <div class="icon">&#128248;</div>
-        <h3>Meal Photo Log</h3>
-        <p>Take a photo of your meal and let AI identify foods and estimate calories automatically.</p>
-        <span class="card-link">Try Photo Log &rarr;</span>
-      </a>
-
       <a href="coach.html" class="feature-card">
-        <div class="icon">&#129504;</div>
-        <h3>AI Diet Coach</h3>
+        <div class="icon">🧠</div><h3>AI Diet Coach</h3>
         <p>Chat with your personal nutrition assistant for recipes, advice, and meal planning tips.</p>
-        <span class="card-link">Chat Now &rarr;</span>
+        <span class="card-link">Chat Now →</span>
       </a>
-
+      <a href="reminder.html" class="feature-card">
+        <div class="icon">💊</div><h3>Medication Reminder</h3>
+        <p>Track medications and get timely SMS reminders to never miss a dose.</p>
+        <span class="card-link">Set Reminders →</span>
+      </a>
+      <a href="scanner.html" class="feature-card">
+        <div class="icon">📷</div><h3>Barcode Scanner</h3>
+        <p>Scan product barcodes to instantly get nutritional info and add to your meal log.</p>
+        <span class="card-link">Scan Now →</span>
+      </a>
+      <a href="photo-log.html" class="feature-card">
+        <div class="icon">🖼️</div><h3>Meal Photo Log</h3>
+        <p>Take a photo of your meal and let AI identify foods and estimate calories automatically.</p>
+        <span class="card-link">Try Photo Log →</span>
+      </a>
       <a href="analytics.html" class="feature-card">
-        <div class="icon">&#128200;</div>
-        <h3>Predictive Analytics</h3>
+        <div class="icon">📈</div><h3>Predictive Analytics</h3>
         <p>AI-powered insights into your nutritional patterns, trend detection, and deficiency alerts.</p>
-        <span class="card-link">View Analytics &rarr;</span>
-      </a>
-
-      <a href="auth.html" class="feature-card">
-        <div class="icon">&#128274;</div>
-        <h3>User Authentication</h3>
-        <p>Secure your data with login/register. Supports email, Google, and GitHub sign-in.</p>
-        <span class="card-link">Sign In &rarr;</span>
+        <span class="card-link">View Analytics →</span>
       </a>
     </div>
   </section>
 
-  <footer class="page-footer">
-    &copy; 2025 Health+ Platform | All Rights Reserved
-  </footer>
+  <footer class="page-footer">&copy; 2025 Health+ Platform | All Rights Reserved</footer>
+</div>
 
-  <script src="js/storage.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/ui.js"></script>
-  <script>
-    UI.renderNav('home');
-
-    /* Register PWA Service Worker */
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('SW registered:', reg.scope))
-        .catch(err => console.log('SW registration failed:', err));
-    }
-  </script>
+<script src="js/storage.js"></script>
+<script>
+function toggleSB(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('show');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('show');}
+function initSidebar(){try{const p=JSON.parse(localStorage.getItem('hp_profile')||'null');if(p?.name){const n=p.name.split(' ')[0];document.getElementById('sbName').textContent=n;document.getElementById('sbAv').textContent=n[0].toUpperCase();}}catch{}}
+initSidebar();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
+</script>
 </body>
 </html>
